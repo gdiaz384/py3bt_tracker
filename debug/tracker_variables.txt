@@ -1,0 +1,63 @@
+#default values for tracker
+#Interval in seconds that the client should wait between sending regular requests to the tracker
+interval=120
+
+#(optional min announce interval), if present, clients must not reannounce more frequently than this
+min_interval=30
+
+tracker_port=9000
+
+0/3 0r0
+1/3 0r1
+2/3 0r2
+3/3 1r0
+4/3 1r1
+5/3 1r2
+6/3 2r0
+7/3 2r1
+8/3 2r2
+
+#Stateful information to keep track of
+1) each torrent 
+-torrent_info_hashes
+-maps various info_hash(es) each to a client_list (strings) 
+-each string identifies a client_list table
+-each client_list table has an entry per client
+-each entry has the peer id, ip, port
+
+2) complete for this torrent - number of peers with the entire file (reported completed)
+3) incomplete for this torrent- number of non-seeder peers (reported starts that have not been moved to complete)
+4) list of peers associated with torrent (peer id, IP (ipv4/ipv6) and port,lastHeardFrom)
+-4) has a peer_id (whatever the peer sent), and then nested values
+
+
+#internal variables
+#maximum number of peers to report
+max_peers_to_report=30
+# A string that the client should send back on its next announcements
+tracker_id=bt_tracker
+
+
+responses are:
+failure reason
+or
+warning message+response
+or 
+response
+response=interval,tracker id, complete, incomplete, peers(binary)
+
+
+#peers (dictionary)
+-peers
+-peer id    (string)
+-ip       (ipv6 hex, ipv4 dotted, dns string)
+-port     (int)
+
+#peers (binary) (compact response), string consisting of multiples of 6 bytes. First 4 bytes are the IP address and last 2 bytes are the port number. All in network (big endian) notation
+-peers
+
+192.168.0.106:18584
+192       . 168       . 0  . 106       : 18584
+1100 0000 . 1010 1000 . 0  . 0110 1010 :
+C0        . A8        . 00 . 6A        : 4898
+C0A8006A4898

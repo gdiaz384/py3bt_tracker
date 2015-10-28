@@ -1,3 +1,5 @@
+aria --dir=C:\Users\Public\Downloads "Z:\temp\games and apps\Rakuen PROJECT - To Love-Ru Darkness OP - (BD 1080p 10bit).mkv.torrent"
+
 #default values for tracker
 #Interval in seconds that the client should wait between sending regular requests to the tracker
 interval=120
@@ -6,6 +8,14 @@ interval=120
 min_interval=30
 
 tracker_port=9000
+
+#database/time
+#remove stale peers based upon consider_peer_dead_after time
+
+c0 a8 00 64 e9c7
+c0 a8 00 96 0c80
+c0 a8 00 6c 33f1
+c0 a8 00 6a 4898
 
 0/3 0r0
 1/3 0r1
@@ -30,13 +40,11 @@ tracker_port=9000
 4) list of peers associated with torrent (peer id, IP (ipv4/ipv6) and port,lastHeardFrom)
 -4) has a peer_id (whatever the peer sent), and then nested values
 
-
 #internal variables
 #maximum number of peers to report
 max_peers_to_report=30
 # A string that the client should send back on its next announcements
 tracker_id=bt_tracker
-
 
 responses are:
 failure reason
@@ -46,7 +54,6 @@ or
 response
 response=interval,tracker id, complete, incomplete, peers(binary)
 
-
 #peers (dictionary)
 -peers
 -peer id    (string)
@@ -55,6 +62,26 @@ response=interval,tracker id, complete, incomplete, peers(binary)
 
 #peers (binary) (compact response), string consisting of multiples of 6 bytes. First 4 bytes are the IP address and last 2 bytes are the port number. All in network (big endian) notation
 -peers
+
+UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96
+url_peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96
+
+import urllib.parse
+raw_info_hash=b'\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a'
+print("raw_info_hash: "+str(raw_info_hash))
+
+encoded_info_hash=urllib.parse.quote_from_bytes(raw_info_hash,safe='')
+print("encoded_info_hash: " +encoded_info_hash)
+
+decoded_info_hash=urllib.parse.unquote_to_bytes(encoded_info_hash)
+print("decoded_info_hash: "+str(decoded_info_hash))
+
+
+\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a
+%124Vx%9A%BC%DE%F1%23Eg%89%AB%CD%EF%124Vx%9A 
+
+%12%34%56%78%9a%bc%de%f1%23%45%67%89%ab%cd%ef%12%34%56%78%9a
+
 
 192.168.0.106:18584
 192       . 168       . 0  . 106       : 18584

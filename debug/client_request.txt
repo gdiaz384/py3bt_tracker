@@ -1,1 +1,0 @@
-/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96&port=18584&uploaded=0&downloaded=0&left=109603551&corrupt=0&key=0E09C995&event=started&numwant=200&compact=1&no_peer_id=1

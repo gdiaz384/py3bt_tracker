@@ -1,22 +1,31 @@
-#bugs
-#
-#
-
-#command line
-#
-#
 
 #responses
-#not sure if responding with peer id in hex format is a good idea, might be better to respond back in binary form
+d
+8:announce
+29:udp://tracker.publicbt.com:80
+13:announce-list
+l
+ l29:udp://tracker.publicbt.com:80e
+ l44:udp://tracker.openbittorrent.com:80/announcee
+ l23:udp://tracker.ccc.de:80e
+ l26:udp://tracker.istole.it:80e
+e
+10:created by
+13:mktorrent 1.0
+13:creation datei1440164335e
+4:info
+d
+6:lengthi2543944556e
+4:name43:PCBSD10.2-RELEASE-x64-pcbsd-desktop.vmdk.xz
+12:piece lengthi262144e
+6:pieces194100
 
-#database/time
-#remove stale peers based upon consider_peer_dead_after time
 
-#new funct
-#
-#
-
-aria --dir=C:\Users\Public\Downloads "Z:\temp\games and apps\Rakuen PROJECT - To Love-Ru Darkness OP - (BD 1080p 10bit).mkv.torrent"
+192
+0000 0000
+1100 0000
+hex: 
+C0
 
 d14:failure reason32:invalid info hash and/or peer ide
 
@@ -86,23 +95,6 @@ e
 #currently giving out:
 d8:completei0e10:incompletei1e8:intervali120e12:min intervali30eld7:peer id32:-UT2211-b9622c73c315c6513c7595962:ip13:192.168.0.1004:porti18584eed7:peer id32:-UT2210-b9622c73c315c6513c7595962:ip9:127.0.0.14:porti18584eeee
 
-\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a
-%124Vx%9A%BC%DE%F1%23Eg%89%AB%CD%EF%124Vx%9A 
-
-%12%34%56%78%9a%bc%de%f1%23%45%67%89%ab%cd%ef%12%34%56%78%9a
-
-import urllib.parse
-raw_info_hash=b'\x12\x34\x56\x78\x9a\xbc\xde\xf1\x23\x45\x67\x89\xab\xcd\xef\x12\x34\x56\x78\x9a'
-print("raw_info_hash: "+str(raw_info_hash))
-
-encoded_info_hash=urllib.parse.quote_from_bytes(raw_info_hash,safe='')
-print("encoded_info_hash: " +encoded_info_hash)
-
-decoded_info_hash=urllib.parse.unquote_to_bytes(encoded_info_hash)
-print("decoded_info_hash: "+str(decoded_info_hash))
-
-/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96&port=18584&uploaded=0&downloaded=0&left=109603551&corrupt=0&key=0E09C995&event=started&numwant=200&compact=1&no_peer_id=1
-
 info_hash=03ed1dfGa2Ie381db82a59eb9283f f62252a0
 info_hash=03ed1dfGa2Ie381db82a59eb9283ff625Ra0
 peer_id=-UT2210-b9b2csc315c6Q3cu9596
@@ -116,10 +108,6 @@ event=started
 numwant=200
 compact=1
 no_peer_id=1
-
-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96
-url_peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96
-
 
 d
 	8:complete
@@ -179,10 +167,19 @@ d
 e
 
 
-http://tracker.xdvdz.com:2710/announce
-/announce.php?info_hash=%e3%93W%a1%9frFaGY%08%3b%18%f4%91%89%db%21o%ed&peer_id=-UT2210-%16b%f7%26%a2%21%21D%2b%b8X%17&port=59847&uploaded=407063926464&downloaded=0&left=0&corrupt=0&key=E07B3264&event=started&numwant=200&compact=1&no_peer_id=1
-
-http://tracker.xdvdz.com:2710/announce?info_hash=%e3%93W%a1%9frFaGY%08%3b%18%f4%91%89%db%21o%ed&peer_id=-UT2210-%16b%f7%26%a2%21%21D%2b%b8X%17&port=59847&uploaded=407063926464&downloaded=0&left=0&corrupt=0&key=E07B3264&event=started&numwant=200&compact=1&no_peer_id=1
+d
+8:
+complete
+i8e
+10:incomplete
+i8e
+8:interval
+i1800e
+12:min interval
+i1800e
+5:peers
+48:$E“é·cG‹í»’±Pí‘»’1ìâı,Ë|Ô¿˘˙PÇ :ZB-/„=ªπŸ˜Fc»’
+e
 
 d8:completei8e10:incompletei8e8:intervali1800e12:min intervali1800e5:peers48:$E“é·cG‹í»’±Pí‘»’1ìâı,Ë|Ô¿˘˙PÇ :ZB-/„=ªπŸ˜Fc»’e
 
@@ -198,7 +195,3 @@ d
 	5:peers
 		48:$E“é·cG‹í»’±Pí‘»’1ìâı,Ë|Ô¿˘˙PÇ :ZB-/„=ªπŸ˜Fc»’
 e
-
-
-
-

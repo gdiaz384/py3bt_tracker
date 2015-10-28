@@ -1,0 +1,43 @@
+https://launchpad.net/
+
+BT Specification resources:
+https://wiki.theory.org/BitTorrentSpecification
+https://wiki.theory.org/BitTorrentSpecification#peer_id
+https://wiki.theory.org/BitTorrentSpecification#Bencoding
+https://wiki.theory.org/BitTorrent_Tracker_Protocol
+http://bittorrent.org ->developers
+
+Python Basics:
+https://docs.python.org/3.4/tutorial/interpreter.html
+https://docs.python.org/3.4/tutorial/introduction.html
+https://docs.python.org/3.4/tutorial/controlflow.html
+https://docs.python.org/3.4/tutorial/datastructures.html#dictionaries
+
+https://docs.python.org/3.4/tutorial/classes.html
+https://docs.python.org/3.4/reference/compound_stmts.html#class-definitions
+
+https://docs.python.org/3.4/library/stdtypes.html#mapping-types-dict
+https://docs.python.org/3.4/faq/programming.html#faq-multidimensional-list
+
+https://www.safaribooksonline.com/library/view/learning-python-5th/9781449355722/ch17s02.html
+https://www.safaribooksonline.com/library/view/learning-python-5th/9781449355722/ch17s04.html
+
+Tornado Web Server
+http://www.tornadoweb.org/en/stable/
+http://www.tornadoweb.org/en/stable/web.html
+http://www.tornadoweb.org/en/stable/http1connection.html
+http://www.tornadoweb.org/en/stable/httputil.html
+
+Tornado Demos:
+http://www.tornadoweb.org/en/stable/guide/queues.html
+https://github.com/tornadoweb/tornado/blob/stable/demos/chat/chatdemo.py
+
+Python References:
+https://docs.python.org/3.4/howto/unicode.html
+https://docs.python.org/3.4/library/urllib.parse.html
+https://docs.python.org/3.4/library/hashlib.html
+https://docs.python.org/3.4/library/binascii.html
+https://docs.python.org/3.4/library/random.html
+
+Semantic Versioning 2.0.0
+http://semver.org

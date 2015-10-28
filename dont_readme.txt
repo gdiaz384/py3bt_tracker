@@ -45,6 +45,15 @@ http://tdm-gcc.tdragon.net/download
 9) >pyinstaller --onefile py3bt_tracker.py
 10) look for the output under c:\python34\scripts\dist\
 
+Ubuntu:
+apt-get install python3-pip python-dev build-essential 
+pip3 install tornado
+pip3 install pyinstaller
+pyinstaller --version
+the pyinstaller devs are asses so make sure to sudo as a regular user or relog out of the root user to compile
+pyinstaller --onefile py3bt_tracker.py
+output is under /dist
+
 Post Compilation Usage:
 To run: double click on it
 Detailed Usage: see usage section in the readme.md or run py3bt_tracker.exe --help

@@ -1,115 +1,45 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 """
-py3bt_tracker.py is an Ultra-low performance and poorly written standalone ephemeral tracker for torrents written in Python3 
-with no scrape/statistics/ipv6/private features and runs on port 9000 (hardcoded).  py3bt_tracker.py is a python implementation of
-the tracker portions of https://wiki.theory.org/BitTorrentSpecification /BitTorrent_Tracker_Protocol and /beeps using Tornado Web Server
-Pick your License: GPL (any) or BSD (any) or MIT/Apache
-
+Description:
+py3bt_tracker.py is a cross-platform standalone ephemeral tracker for torrents written in Python3.
+The development emphasis is on zero-configuration "just works" software.
+Currently implemented using a multidimentional array in memory and the Tornado Web Server.
 
 google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
-
 
 Usage guide:
 1) double click on the .exe for your os
 2) point your torrents to http://127.0.0.1:9000/announce 
 where 127.0.0.1 is substituted for your IP obtained from ipconfig (for lans)
+Note: If the firewall annoyance pops up, add as an exception.
+
+Important Release Notes:
+-Runs on port 9000, with a requested check-in interval of 4 minutes by default (change via command line)
 
 3) (if crazy enough to use this on the internets) public ip can be obtained from icanhazip.com, and remember to port forward
 ^-not intended use case but should still work maybe-^
-Also note: Add as firewall exception if nag comes up
+
+Current version: 1.0.0-rc1
 
 ###stop reading now###
-Current version: 1.0
-Note: Although it should work, py3bt_tracker is not currently optimized for performance/security in open WAN enviornments (the internet)
-
-Build guide for the .py script (mainly for linux people):
-1) install python from python-3.4.3.amd64.msi (add to path and then relog <-important)
-2) administrative command prompt
-cmd
-3) install tornado web server
->pip install tornado
-3) copy script.py to c:\python34\scripts
-5) >cd c:\python34\scripts
-6) can run using python direclty now 
->python py3bt_tracker.py
-or
->start "" python py3bt_tracker.py
-or
->RunHiddenConsole.exe python py3bt_tracker.py
-or
-7) to compile into a .exe -Install the GCC compiler via tdm64-gcc-5.1.0-2.exe, or some other one
-8) >pip install pyinstaller
-9) >pyinstaller --onefile py3bt_tracker.py
-10) look for the output under c:\python34\scripts\dist\
-11) continue with the steps in the usage guide above
-
-Questions about licensing:
--If I get any questions, I'm changing this to "beerware" and will refuse to elaborate further. You've been warned.
-
-Motivation/goal:
-opentracker is posix only :'(
-so this one is a cross platform non-equivalent with an emphasis on reduced performance and 
-fewer (end-user) dependencies, as in: compiled already that doesn't need linux/webserver/php/sql/vsredists
-
-Questions about why this is so poorly written:
--my first python program
--my first useful program, as in program that was actually useful at solving a novel problem not solved 
-before (standalone tracker for windows)
--emphasis is on working/legibility, not running super fast (not optimized for use on internetz)
--not sure exactly how to reference python class variables
--not sure how to create dynamic variables in py3, py2 method using exec() was a hack
--and not sure how to print/message_pass/append binary, as in native binary, cmd doesn't seem to like it so 
-can't rencode back to valid data after using str(binary_data)
-
-Stuff not to spec:
--first announce to tracker must have "started" event item. Why not enforced? this makes sense in order to keep 
-server-side statistics, ephemeral ones don't however so enforcing this is pointless
--unoffical official default port for trackers is 6969 not 9000. Why using a different one? default ports are icky, also: qTorrent exists
--neither default numwant of 50 nor client numwant respected, set to 30 instead. Why not respected? 30 is plenty, crazy clients that want 200 are crazy
--scrape option not implemented. Why not? doesn't make sense for ephemeral trackers
--option to enable registered info-hashes only. Why not? cuz ephemeral and also complicated to implement
--option to only return peer list to 'registered' peers. Why not? cuz idea is stupid and also very complicated to implement
--beep31 why not? that's more for web servers in general to respond to clients, non really for actual trackers
--trackerID. Why not? uh... how is this useful? is it like an xsrf token to identify the peer? wouldn't that only be for 
-registered peers? that's stupid
--beep6 why not? not sure if it's widely supported enough to bother implementing, and also looks complicated, 
-and not sure it even makes sense since anyone sniffing the line could always just do a replay attack and receive the peer list
-TLS is a better solution to passive sniffing, mere obfuscation would help only if data is stored in a db for anaysis later, but still
-any 'decrypted' obfuscation would be very damning evidence so, if this is important, then it makes more sense to seed the 
-db with fake peers to contaminate the evidence preemtively-I could totally code this in maybe somehow
 
 feature/bug Todo list:
--incomplete and complete should increment/decrement -partially done
+-incomplete and complete should increment/decrement -partially done, need to improve "update" code still
 -text/plain bencoded response -done
 -error codes should be -done
 1) text/plain -done
 2) human readable -done
 3) sent back as becoded responses -done
--figure out how to use github
--udp tracker support - beep 15 -Does Tornado even know what UDP is? maybeh
+-figure out how to use github -partially done
 -add ipv6 support at some point -will get around to it eventually...
--Should return a response of peers picked randomly from peer pool for a torrent, will get around to it maybe...
+-Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually...
 -figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x
--will add obfuscation feature if I ever get that bored
 -change db key from peer_id to ip/port combination to limit potential for abuse in untrustworthy enviornments
+-udp tracker support - beep 15 -Does Tornado even know what UDP is? maybeh
+-will also add obfuscation feature if I ever get that bored
+-improve performance for use in WANs (production quality code optimizations + fully async web server)
 -maybe implement logging, maybe
-
--command line port/interval options port should be read from command line (with default to 9000), as should common settings
-py3bt_tracker --help 
-Syntax:
-py3bt_tracker [port='9000'] [interval='240'] [obfuscation='off']
-Example usage:
-py3bt_tracker 
-py3bt_tracker 6969
-py3bt_tracker 9000 240
-py3bt_tracker 6969 240 off
-py3bt_tracker 8080 360 on
-
-NOT on todo list:
-scrape functionality -cuz ephemeral
-private tracker feature - registered infohashes -cuz ephemeral
-private tracker feature - registered peers -cuz stupid
 """
 
 import hashlib
@@ -120,23 +50,10 @@ import time
 import os
 #import random
 
-#import os.path
-#import sys
-#import uuid
-#import logging
-#import math
-#import optparse
-#from optparse import OptionParser
-#import re
-#import base64
-
-#import tornado
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.httputil
-#import tornado.escape
-#import tornado.gen
 #from tornado.concurrent import Future
 from tornado.options import define, options, parse_command_line
 
@@ -188,7 +105,6 @@ def bencode(encodeString,bentype):
         return "l"+str(encodeString)+"e"
     if bentype == 'dictionary':
         return "d"+str(encodeString)+"e"
-    #raise TypeError("bentype not supported:"+str(bentype))
     return
 
 #bencode the static strings
@@ -522,6 +438,10 @@ class Database:
         return peer_list
 
     def updateClient(self,client_object,client_remote_ip):
+        #Todo: update this very old function to handle updates better, should not just override existing peers and also
+        #take into account previously existing seed status, new status and events and factor all of that into updated incomplete/complete numbers
+        #for the relevant info_hash
+
         #use the client dictionary along with IP info to create a Peer
         #determine if a client_ip was used in the client_dictionary, if so use it, else use the IP from the connection instead
         #create table containing global list of all known torrents
@@ -663,8 +583,7 @@ class Database:
         global last_database_cleanup
         global master_info_hash_table
 
-        #could also remove stale peers here
-        #would make more sense to check the db every say 10 min or so (twice the request interval), instead of checking every time a client makes a request
+        #remove stale peers here
         #itterate through hashes, for each hash check every peer's last_request time, make sure not empty
         #find all the current keys in the master table
         #for each key (info hashes)
@@ -772,7 +691,10 @@ class MainHandler(tornado.web.RequestHandler):
         client_remote_ip = self.request.remote_ip
         client_url = self.request.full_url()
         client_uri_dictionary = self.request.arguments
-
+        #client_info_hash = self.get_argument("info_hash")
+        #client_peer_id = self.get_argument("peer_id")
+        #client_port = self.get_argument("port")
+        #client_uploaded = self.get_argument("uploaded")
         global tracker_db
 
         client_request_dictionary = parseRawRequest(client_query)
@@ -822,7 +744,7 @@ class MainHandler(tornado.web.RequestHandler):
         if int(time.time())-last_database_cleanup > clean_database_every:
             tracker_db.checkDB()
 
-        #now just need to actually respond back
+        #now just need to actually respond back (http over tcp)
 
         current_client_info_hash=client_request_dictionary['client_info_hash']
         #print(client_request_dictionary)
@@ -1044,36 +966,6 @@ class MainHandler(tornado.web.RequestHandler):
         print("unspecified error")
         self.flush()
         return
-
-        #old code that doesn't do anything anymore (remove it at some point)
-        #bencoded_peer_list=bencode(benscoded_peer_list,'string')
-        #bencoded_peer_list=bencode(bencoded_peer_list,'list')
-        #bencoded_peers_string_and_list=bencode('peers'+bencoded_peer_list,'string')
-        #response=bencoded_complete_string+bencoded_complete_value+bencoded_incomplete_string+bencoded_incomplete_value+bencoded_interval_string+bencoded_interval_value+bencoded_min_interval_string+bencoded_min_interval_value+bencoded_peers_string_and_list
-        #response=bencoded_complete_string+bencoded_complete_value+bencoded_incomplete_string+bencoded_incomplete_value+bencoded_interval_string+bencoded_interval_value+bencoded_min_interval_string+bencoded_min_interval_value+bencoded_peers_string+bencoded_peer_list
-
-        #print(bencoded_peer_list)
-        #response=bencode(response,'dictionary')
-        #d8:completei0e10:incompletei1e8:intervali600e5:peersld2:ip9:127.0.0.17:peer id20:-UT2210-¹b,sÃÆQ<u•–4:porti18584eeee
-        #current response returns hex digits for the peer id, not the binary form, might want to change that
-        #print("response: "+response)
-        #return response
-        #def generateClientResponse(client_object,peerList)
-        #response=generateClientResponse(client_request_dictionary,peer_List,complete,incomplete)
-        #self.write(response)
-        #self.finish()
-
-        #debugging code
-        #client_info_hash = self.get_argument("info_hash")
-        #client_peer_id = self.get_argument("peer_id")
-        #client_port = self.get_argument("port")
-        #client_uploaded = self.get_argument("uploaded")
-        #print("client_uri_dictionary: " + str(client_uri_dictionary))
-        #print(client_uri_dictionary['info_hash'])
-        #print("client_port: " + client_port)
-        #self.write("client_uri: " + str(client_uri) + "<br>")
-        #self.write("client_path: " + str(client_path) + "<br>")
-        #self.write("client_query: " + str(client_query) + "<br>")
 
 
 class InvalidRequest(tornado.web.RequestHandler):

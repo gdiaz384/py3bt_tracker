@@ -12,3 +12,11 @@ start->cmd
 >pip install Tornado
 >pyinstaller --onefile py3bt_tracker.py
 look for the output exe under dist\
+
+Ubuntu:
+apt-get install python3-pip python-dev build-essential 
+pip3 install tornado
+pip3 install pyinstaller
+pyinstaller --version
+pyinstaller --onefile py3bt_tracker.py
+output is under /dist

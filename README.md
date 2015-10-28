@@ -6,6 +6,8 @@ The development emphasis is on zero-configuration "just works" software.
 
 Currently implemented using a multidimentional array in memory and the Tornado Web Server.
 
+google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
+
 ## Key Features:
 
 1. Works
@@ -28,8 +30,6 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 1. double click on the .exe for your os
 2. point your torrents to http://127.0.0.1:9000/announce where 127.0.0.1 is substituted for your IP obtained from ipconfig (for lans)
 3. Note: If the firewall annoyance pops up, add as an exception.
-
-google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
 
 ## Important Release Notes:
 

@@ -1,6 +1,6 @@
 # py3bt_tracker
 
-py3bt_tracker.py is a cross-platform standalone ephemeral tracker for torrents written in Python3.
+py3bt_tracker is a cross-platform standalone ephemeral tracker for torrents written in Python3.
 
 The development emphasis is on zero-configuration "just works" software.
 

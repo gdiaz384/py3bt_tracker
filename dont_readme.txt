@@ -1,5 +1,3 @@
-Current version: 1.0.0-rc1
-
 Release Notes:
 -Requires Python and Tornado web server (for python), see How To Build section in dont_readme.txt for more details
 -Runs on port 9000, with a requested check-in interval of 4 minutes by default (change via command line)

@@ -1,4 +1,4 @@
-Click on the hyperlink at the top or "releases" to download the latest version.
+Click on the hyperlink at the top or "release" to download the latest version.
 
 Description:
 py3bt_tracker.py is a cross-platform standalone ephemeral tracker for torrents written in Python3.

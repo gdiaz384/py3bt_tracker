@@ -7,7 +7,6 @@ Currently implemented using a multidimentional array in memory and the Tornado W
 
 Key Features:
 -Works
-
 -Prebuilt binaries
 -No external dependencies or configuration required
 -Permissive license

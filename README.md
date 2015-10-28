@@ -1,11 +1,4 @@
 # py3bt_tracker
-```
-Latest Release: v1.0.0-rc.1
-In Development: v1.0.0
-```
-Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
-
-## Description:
 
 py3bt_tracker.py is a cross-platform standalone ephemeral tracker for torrents written in Python3.
 
@@ -22,6 +15,14 @@ Currently implemented using a multidimentional array in memory and the Tornado W
 5. Standards Compliant
 6. Easy to rebuild from source if so inclined (detailed instructions provided in dont_readme.txt)
 
+## Download:
+
+```
+Latest Release: v1.0.0-rc.1
+In Development: v1.0.0
+```
+Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
+
 ## Usage guide:
 
 1. double click on the .exe for your os
@@ -37,13 +38,10 @@ google_define('ephemeral') #returns: adjective - lasting for a very short time -
 3. Currently no scrape/statistics/ipv6/private/logging features
 4. IPv6, UDP support and obfuscation features might be added at some point
 
-## Syntax:
-```
-py3bt_tracker {port='9000'} {interval='4'} {obfuscation='off'}
-```
 
 ## Example usage:
 ```
+Syntax: py3bt_tracker {port='9000'} {interval='4'} {obfuscation='off'}
 py3bt_tracker --help
 py3bt_tracker
 py3bt_tracker 6969

@@ -4,7 +4,7 @@ py3bt_tracker is a cross-platform standalone ephemeral tracker for torrents writ
 
 The development emphasis is on zero-configuration "just works" software.
 
-Currently implemented using a multidimentional array in memory and the Tornado Web Server.
+Currently implemented using a multidimentional array in memory and the Tornado Web Server (http).
 
 google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
 
@@ -14,7 +14,7 @@ google_define('ephemeral') #returns: adjective - lasting for a very short time -
 - Prebuilt binaries
 - No external dependencies or configuration required
 - Permissive license
-- Standards compliant
+- Standards compliant (including IPv6 support)
 - Easy to rebuild from source if so inclined (check release_notes.txt for detailed instructions)
 
 ## Download:
@@ -25,7 +25,7 @@ In Development: 1.0.0-rc.2
 ```
 Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
 
-## Typical Usage guide:
+## Typical Usage Guide:
 
 1. double click on the .exe for your os
 2. point your torrents to http://192.168.1.50:6969/announce where 192.168.1.50 gets substituted for your IP obtained from ipconfig (for lans)
@@ -34,21 +34,21 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 ## Important Release Notes:
 
 - Runs on port 6969, with a requested check-in interval of 4 minutes by default (change via command line)
-- Currently no scrape/statistics/ipv6/private/logging features, although IPv6 support is planned
+- Currently no scrape/statistics/private/logging/obfuscation features
 - Intended use case is in a LAN enviornment, will also work on the internet, but not currently optimized for it.
-- I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP support and obfuscation if there's any interest in doing so. That's the natural extension to this project after all. However, if there's no interest, I'm stopping development after adding IPv6 support since that's as far as my personal use case goes.
+- I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP support and obfuscation if there's any interest in doing so. That's the natural extension to this project after all. Just message me over git.
 
-## Example usage:
+## Advanced Usage Guide:
 ```
 Syntax: py3bt_tracker {--port=6969} {--client_request_interval=4} {--enable_obfuscation}
 Syntax: py3bt_tracker {-p=9000} {-i=30} {-o}
-py3bt_tracker --help
-py3bt_tracker
-py3bt_tracker -p=6969
-py3bt_tracker -p=9000 -i=4
-py3bt_tracker -p=6969 --client_request_interval=16
-Windows (binary):  start "" C:\Users\User\Downloads\py3bt_tracker.exe 9000 30
-Windows (pyscript): start "" python C:\Users\User\Downloads\py3bt_tracker.py 6969
+>py3bt_tracker --help
+>py3bt_tracker
+>py3bt_tracker -p=6969
+>py3bt_tracker -p=9000 -i=4
+>py3bt_tracker -p=6969 --client_request_interval=16
+Windows (binary): >start "" C:\Users\User\Downloads\py3bt_tracker.exe
+Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py --port=6969 -i=30
 ```
 
 Notes: obfuscation not currently implemented, planned for v2.0 if there's enough interest

@@ -21,7 +21,7 @@ google_define('ephemeral') #returns: adjective - lasting for a very short time, 
 
 ```
 Latest Release: 1.0.0
-In Development: stopped, pm me with a use case/feature to add
+Development: stopped, pm me with a use case/feature to add
 ```
 Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
 

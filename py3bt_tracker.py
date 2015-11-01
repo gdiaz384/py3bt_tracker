@@ -13,15 +13,14 @@ Current version: 1.0.0-rc2
 ###stop reading now###
 
 Version 1 Todo list:
--incomplete and complete should increment/decrement -partially done, need to improve "update" code still  -in progress
--add ipv6 support at some point -will get around to it eventually... -in progress
--Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually... -in progress
--figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x -in progress
+-incomplete and complete should increment/decrement -currently buggy (cosmetic tho)
+-(bug) ipv6 integer ports are messed up ii35104ee
 -maybe implement logging, maybe 
 -Version 2 Todo list:
 -add required response delay before giving out peers or adding to main peer db to raise the bar on potential for abuse in untrustworthy enviornments
 -improve performance for use in WANs (production quality code optimizations + fully async web server)
 -also add obfuscation feature (using the ipaddress library), and make wipe old peers/db optional (essentially have a reliably mode and a screwy mode filled with wrong info)
+-maybe v2 should have a "high integrity mode" and a deliberate "low integrity mode"
 -add udp tracker support (beep 15) -Does Tornado even know what UDP is? maybeh, or just import udp support from another project
 """
 
@@ -29,12 +28,12 @@ import urllib.parse #parse urls
 import hashlib        #create md5 hashes from info_hash peer_id's to use as lookup keys in db
 import binascii       #convert from hex/binary to ascii and back
 import time             #keep track of when to erase db and peers
-import socket       #required for dns lookups, used to get ip from dns name if one is specified using &ip= parameter
+import socket         #required for dns lookups, used to get ip from dns name if one is specified using &ip= parameter
 import ipaddress   #used to add ipv6 support
 import argparse     #used to add command line options
 
-import os #not sure if need this actually
 import random #used to shuffle peers list before response, and seems like it would be useful for maybe generating fake peers
+#import os #not sure if need this actually, and leaving it in seems to break tornado's ability to output to stdout, or maybe leaving it out does?
 
 #tornado stuff
 import tornado.ioloop
@@ -46,11 +45,11 @@ import tornado.httputil
 
 #configurable settings
 tracker_port=6969
-request_interval=1     #in minutes
+request_interval=4     #in minutes
 #wipe_database every this many seconds, 3600 seconds = 1 hr
-#database_lifespan=2592000   #30 days
-#database_lifespan=3600          #1 hour
-database_lifespan=360              #6 minutes
+#database_lifespan=43200   #30 days
+database_lifespan=60          #1 hour
+#database_lifespan=6         #6 minutes
 max_peers_in_response=50
 enable_obfuscation=False
 
@@ -59,6 +58,7 @@ command_Line_parser=argparse.ArgumentParser()
 command_Line_parser.add_argument("-p", "--port", help="select which port to run on (int)",default=tracker_port,type=int)
 command_Line_parser.add_argument("-i", "--client_request_interval", help="how often should clients check the server (min)",default=request_interval,type=int)
 command_Line_parser.add_argument("-o", "--enable_obfuscation", help="seed database with random IP addresses", action="store_true")
+command_Line_parser.add_argument("-d", "--wipe_db_every", help="how often to purge the entire database",default=database_lifespan,type=int)
 
 #parse command line settings
 command_Line_arguments=command_Line_parser.parse_args()
@@ -74,6 +74,10 @@ request_interval=request_interval*60
 if command_Line_arguments.enable_obfuscation:
     enable_obfuscation=True
 #print("enable_obfuscation: " + str(enable_obfuscation))
+
+database_lifespan=command_Line_arguments.wipe_db_every
+database_lifespan=database_lifespan*60
+#print("specified port: " + str(database_lifespan))
 
 #internal variables
 #clients will receive an error if they request more than this (in seconds)
@@ -856,7 +860,7 @@ class MainHandler(tornado.web.RequestHandler):
 
         #spec says "the tracker randomly selects peers to include in the response"
         random.shuffle(peer_List)
-        print(peer_List)
+        #print(peer_List)
         
         client_object=client_request_dictionary
         #self.set_header('Content-Type', 'application/octet-stream')
@@ -910,10 +914,10 @@ class MainHandler(tornado.web.RequestHandler):
         elif total_available >= client_max_response_count:
             response_count=client_max_response_count
 
-        print('response_count: ')
-        print(response_count)
+        #print('response_count: ')
+        #print(response_count)
         #output the inital bencoded dictionary that will be used for the entire response
-        response_global=bencoded_complete_string+bencoded_complete_value+bencoded_incomplete_string+bencoded_incomplete_value+bencoded_interval_string+bencoded_interval_value+bencoded_min_interval_string+bencoded_min_interval_value+bencoded_peers_string
+        response_global=bencoded_complete_string+bencoded_complete_value+bencoded_incomplete_string+bencoded_incomplete_value+bencoded_interval_string+bencoded_interval_value+bencoded_min_interval_string+bencoded_min_interval_value
         self.write('d')
         self.write(response_global)
 
@@ -933,6 +937,8 @@ class MainHandler(tornado.web.RequestHandler):
         #output for compact type:
         #only 1 type but needs: 1string+1bitstream (peers) (can append e at the end)
         if client_requested_compact != True:
+            self.write(bencoded_peers_string)
+            
             #for normal responses, prepare the list by bencoding the values in the response (skip the peer id)
             #each peer in the list contains: (peer_id [0], is_seed [1], created_time [2], port [3], port hex [4],ipv4 (.) [5], ipv4 hex [6], ipv6 (:) [7], ipv6 hex [8])
             for i in range (len(peer_List)):
@@ -958,6 +964,7 @@ class MainHandler(tornado.web.RequestHandler):
                         if peer_List[i][7] !='invalid':
                             bencoded_peer_array.append(bencode(bencoded_ip_string+peer_List[i][7]+bencoded_port_string+peer_List[i][3],'dictionary'))
 
+                    #print(bencoded_peer_array)
                     bencoded_peer_list=str(bencoded_peer_array[0])
                     for i in range (response_count):
                         if i!=0:
@@ -1074,6 +1081,7 @@ class MainHandler(tornado.web.RequestHandler):
                 #peer_list_in_binary=peer_list_in_hex
                 peer_list_length=str(len(peer_list_in_binary))
                 #   48:[binary]  with a trailing e
+                self.write(bencoded_peers_string)
                 self.write(peer_list_length)
                 self.write(':')
                 self.write(peer_list_in_binary)
@@ -1125,8 +1133,8 @@ def main():
     #in order to use /scrape add an entry
     #or to respond to anything /announce* like /announce.php switch which line is commented
     app = tornado.web.Application([
-            (r"/announce.*", MainHandler),
-            #(r"/announce", MainHandler),
+            #(r"/announce.*", MainHandler),
+            (r"/announce", MainHandler),
 			(r"/.*", InvalidRequest),
             ])
     app.listen(tracker_port)

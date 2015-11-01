@@ -44,11 +44,12 @@ Syntax: py3bt_tracker {--port=6969} {--client_request_interval=4} {--enable_obfu
 Syntax: py3bt_tracker {-p=9000} {-i=30} {-o}
 >py3bt_tracker --help
 >py3bt_tracker
+>py3bt_tracker --port=6969
 >py3bt_tracker -p=6969
->py3bt_tracker -p=9000 -i=4
->py3bt_tracker -p=6969 --client_request_interval=16
-Windows (binary): >start "" C:\Users\User\Downloads\py3bt_tracker.exe
-Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py --port=6969 -i=30
+>py3bt_tracker -p=6969 -i=4
+>py3bt_tracker -p=80 --client_request_interval=15
+Windows (binary): >start "" C:\Users\User\Downloads\py3bt_tracker.exe --port=9000
+Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py -i=30
 ```
 
 Notes: obfuscation not currently implemented, planned for v2.0.0 if there's enough interest

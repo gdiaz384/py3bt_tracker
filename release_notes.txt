@@ -2,8 +2,8 @@ Release Notes:
 -Requires Python and Tornado web server (for python), see How To Build section for more details
 -Runs on port 6969, with a requested check-in interval of 4 minutes by default (change via command line)
 -Intended use case is in a LAN enviornment, will also work on the internet, but not currently optimized for it.
--currently no scrape/statistics/ipv6/private/logging features 
--IPv6 and UDP support might be added at some point
+-currently no scrape/statistics/private/logging features 
+ UDP and obfuscation might be added at some point
 
 Notice: Although it should work, py3bt_tracker is not currently optimized for performance/security in open/untrusted WAN enviornments (the internet) and extremely heavy loads. Should work well otherwise. For linux enviornments, consider building OpenTracker from source over at http://erdgeist.org/arts/software/opentracker
 
@@ -54,14 +54,15 @@ output is under /dist
 
 Post Compilation Usage:
 To run: double click on it
-Detailed Usage: see usage section in the readme.md or run py3bt_tracker.exe --help
-To close/stop it: ctrl+c or ctrl+z or click on the little x at the top right of the command prompt window
+Detailed Usage: see advanced usage in the readme.md or run py3bt_tracker.exe --help
+To close/stop it: ctrl+c or click on the little x at the top right of the command prompt window
 To log output: py3bt_tracker.exe > %userprofile%\desktop\py3bt_tracker.log.txt
 
 Motivation/goal:
 -opentracker is posix only due to fat library dependency :'(  
 -same with and all other trackers I've found, either non-functional or dependencies everywhere or both why x.x
--This one is a cross platform non-equivalent with an emphasis on reduced performance and fewer (end-user) dependencies, as in: compiled already that doesn't need linux/webserver/php/sql/vsredists/boost/ides/vstudio/knowinghowtocompilesoftware/webengine etc
+-This one is a cross platform non-equivalent with an emphasis on reduced performance and fewer (end-user) dependencies, 
+as in: compiled already that doesn't need linux/webserver/php/sql/vsredists/boost/ides/vstudio/knowinghowtocompilesoftware/webengine etc
 
 Questions about why this is so poorly written:
 -my first python program
@@ -83,20 +84,20 @@ Stuff Not To Spec:
 -option to enable registered info-hashes only. Why not? cuz ephemeral and also complicated to implement
 -option to only return peer list to 'registered' peers. Why not? cuz idea is stupid and also very complicated to implement
 -beep31 why not? that's more for web servers in general to respond to clients, non really for actual trackers
--trackerID. Why not? uh... how is this useful? is it like an xsrf token to identify the peer? wouldn't that only be for registered peers? that's stupid
+-trackerID. Why not? i'm assuming this is like an xsrf token to identify the peer. very limited use cases and coding depends strongly on how the tracker is intended to be used
 -beep6 why not? not sure if it's widely supported enough to bother implementing, and also looks complicated, and not sure it even makes sense since anyone sniffing the line could always just do a replay attack and receive the peer list right? And anyway, TLS is a better solution to passive sniffing. Mere obfuscation would help only if data is stored in a db for anaysis later, but still any 'decrypted' obfuscation would be very damning evidence so... If this is important, then it makes more sense to seed the db with fake peers to contaminate the evidence preemtively. I could totally code this in maybe somehow if bored enough one day.
 
 Version 1 Todo list:
--incomplete and complete should increment/decrement -partially done, need to improve "update" code still
--add ipv6 support at some point -will get around to it eventually...
--Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually...
--figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x
--maybe implement logging, maybe
+-incomplete and complete should increment/decrement -partially done, need to improve "update" code still  -in progress
+-add ipv6 support at some point -will get around to it eventually... -in progress
+-Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually... -in progress
+-figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x -in progress
+-maybe implement logging, maybe 
 -Version 2 Todo list:
--change db key from peer_id to ip/port combination to limit potential for abuse in untrustworthy enviornments
+-add required response delay before giving out peers or adding to main peer db to raise the bar on potential for abuse in untrustworthy enviornments
 -improve performance for use in WANs (production quality code optimizations + fully async web server)
--will also add obfuscation feature if I ever get that bored
--udp tracker support - beep 15 -Does Tornado even know what UDP is? maybeh
+-also add obfuscation feature (using the ipaddress library), and make wipe old peers/db optional (essentially have a reliably mode and a screwy mode filled with wrong info)
+-add udp tracker support (beep 15) -Does Tornado even know what UDP is? maybeh, or just import udp support from another project
 
 NOT on todo list:
 scrape functionality -cuz ephemeral

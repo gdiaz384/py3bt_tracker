@@ -29,7 +29,7 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 
 1. double click on the .exe for your os
 2. point your torrents to http://192.168.1.50:6969/announce where 192.168.1.50 gets substituted for your IP obtained from ipconfig (for lans)
-- Note: If the firewall annoyance pops up, add as an exception.
+3. Note: If the firewall annoyance pops up, add as an exception.
 
 ## Important Release Notes:
 

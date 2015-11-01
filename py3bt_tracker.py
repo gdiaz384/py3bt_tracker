@@ -8,7 +8,7 @@ Currently implemented using a multidimentional array in memory and the Tornado W
 
 google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
 
-Current version: 1.0.0-rc2
+Current version: 1.0.0
 
 ###stop reading now###
 

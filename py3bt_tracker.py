@@ -2,9 +2,9 @@
 # -*- coding: UTF-8 -*-
 """
 Description:
-py3bt_tracker.py is a cross-platform standalone ephemeral tracker for torrents written in Python3.
+py3bt_tracker is a cross-platform standalone ephemeral tracker for torrents written in Python3.
 The development emphasis is on zero-configuration "just works" software.
-Currently implemented using a multidimentional array in memory and the Tornado Web Server.
+Currently implemented using a multidimentional array in memory and the Tornado Web Server (http).
 
 google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
 
@@ -13,40 +13,44 @@ Current version: 1.0.0-rc2
 ###stop reading now###
 
 Version 1 Todo list:
--incomplete and complete should increment/decrement -partially done, need to improve "update" code still
--add ipv6 support at some point -will get around to it eventually...
--Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually...
--figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x
--maybe implement logging, maybe
+-incomplete and complete should increment/decrement -partially done, need to improve "update" code still  -in progress
+-add ipv6 support at some point -will get around to it eventually... -in progress
+-Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually... -in progress
+-figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x -in progress
+-maybe implement logging, maybe 
 -Version 2 Todo list:
--change db key from peer_id to ip/port combination to limit potential for abuse in untrustworthy enviornments
+-add required response delay before giving out peers or adding to main peer db to raise the bar on potential for abuse in untrustworthy enviornments
 -improve performance for use in WANs (production quality code optimizations + fully async web server)
--will also add obfuscation feature if I ever get that bored
--udp tracker support - beep 15 -Does Tornado even know what UDP is? maybeh
+-also add obfuscation feature (using the ipaddress library), and make wipe old peers/db optional (essentially have a reliably mode and a screwy mode filled with wrong info)
+-add udp tracker support (beep 15) -Does Tornado even know what UDP is? maybeh, or just import udp support from another project
 """
 
-import hashlib
-import urllib.parse
-import binascii
-import time
+import urllib.parse #parse urls
+import hashlib        #create md5 hashes from info_hash peer_id's to use as lookup keys in db
+import binascii       #convert from hex/binary to ascii and back
+import time             #keep track of when to erase db and peers
+import socket       #required for dns lookups, used to get ip from dns name if one is specified using &ip= parameter
+import ipaddress   #used to add ipv6 support
+import argparse     #used to add command line options
 
-import os
-#import random
+import os #not sure if need this actually
+import random #used to shuffle peers list before response, and seems like it would be useful for maybe generating fake peers
 
+#tornado stuff
 import tornado.ioloop
 import tornado.web
 import tornado.httpserver
 import tornado.httputil
 #from tornado.concurrent import Future
 #from tornado.options import define, options, parse_command_line
-import argparse
 
 #configurable settings
 tracker_port=6969
-request_interval=1
+request_interval=1     #in minutes
 #wipe_database every this many seconds, 3600 seconds = 1 hr
-#database_lifespan=3600
-database_lifespan=360
+#database_lifespan=2592000   #30 days
+#database_lifespan=3600          #1 hour
+database_lifespan=360              #6 minutes
 max_peers_in_response=50
 enable_obfuscation=False
 
@@ -70,12 +74,6 @@ request_interval=request_interval*60
 if command_Line_arguments.enable_obfuscation:
     enable_obfuscation=True
 #print("enable_obfuscation: " + str(enable_obfuscation))
-
-
-#define("port", default=9000, help="run on the given port", type=int)
-#define("obfuscation", default=False, help="obfuscation")
-#define("debug", default=False, help="run in debug mode")
-#print("user selected the following port: " + str(port))
 
 #internal variables
 #clients will receive an error if they request more than this (in seconds)
@@ -129,12 +127,13 @@ bencoded_peers_string=bencode('peers','string')
 bencoded_peer_id_string=bencode('peer id','string')
 bencoded_ip_string=bencode('ip','string')
 bencoded_port_string=bencode('port','string')
-bencoded_peers_string=bencode('peers','string')    
+bencoded_peers_string=bencode('peers','string')
+bencoded_peers6_string=bencode('peers6','string')  #so conflicting info: should it be peers6 (beep 7) or peers_ipv6 (bt_tracker_protocol)?
 bencoded_failure_reason_string=bencode('failure reason','string')
 bencoded_failure_code_string=bencode('failure code','string')
 
 
-#returns a human redable bencoded response
+#returns a human readable failure response as a bencoded dictionary
 #could implement retry feature here (beep 31), but like why...
 def errorHandler(error_code):
     error_code=int(error_code)
@@ -275,85 +274,46 @@ def parseRawRequest(rawquery):
 
     if ('uploaded' in client_rawRequestContainer) == (True):
         client_uploaded=client_rawRequestContainer["uploaded"]
-    else:
-        pass
-        #print("error: uploaded not present")
 
     if ('downloaded' in client_rawRequestContainer) == (True):
         client_downloaded=client_rawRequestContainer["downloaded"]
-    else:
-        pass
-        #print("error: downloaded not present")
 
     if ('left' in client_rawRequestContainer) == (True):
         client_left=client_rawRequestContainer["left"]
-    else:
-        pass
-        #print("error: left not present")
 
     if ('compact' in client_rawRequestContainer) == (True):
         client_compact=client_rawRequestContainer["compact"]
-    else:
-        pass
-        #print("error: compact not present")
 
     if ('no_peer_id' in client_rawRequestContainer) == (True):
         client_no_peer_id=client_rawRequestContainer["no_peer_id"]
-    else:
-        pass
-        #print("error: no_peer_id not present")
 
     if ('event' in client_rawRequestContainer) == (True):
         client_event=client_rawRequestContainer["event"]
-    else:
-        pass
-        #print("error: event not present")
 
     if ('ip' in client_rawRequestContainer) == (True):
         client_ip=client_rawRequestContainer["ip"]
-    else:
-        pass
-        #print("error: ip not present")
  
     if ('numwant' in client_rawRequestContainer) == (True):
         client_numwant=client_rawRequestContainer["numwant"]
-    else:
-        pass
-        #print("error: numwant not present")
 
     if ('key' in client_rawRequestContainer) == (True):
-        #client_key=decodeURL(client_rawRequestContainer["key"])
-        client_key=client_rawRequestContainer["key"]
-    else:
-        pass
-        #print("error: key not present")
+        client_key=urllib.parse.unquote(client_rawRequestContainer["key"])
+        #client_key=client_rawRequestContainer["key"]
 
     if ('trackerid' in client_rawRequestContainer) == (True):
         client_trackerid=client_rawRequestContainer["trackerid"]
-    else:
-        pass
-        #print("error: trackerid not present")
 
     if ('corrupt' in client_rawRequestContainer) == (True):
         client_corrupt=client_rawRequestContainer["corrupt"]
-    else:
-        pass
-        #print("error: corrupt not present")
 
     if ('ipv4' in client_rawRequestContainer) == (True):
         #ipv4 addresses should not be url encoded, only ipv6, but w/e
         client_ipv4=urllib.parse.unquote(client_rawRequestContainer["ipv4"])
-    else:
-        pass
-        #print("error: ipv4 not present")
 
     if ('ipv6' in client_rawRequestContainer) == (True):
         client_ipv6=urllib.parse.unquote(client_rawRequestContainer["ipv6"])
-    else:
-        pass
-        #print("error: ipv6 not present")
         
-    #print_client_info (debugging code)
+    #print client_info (debugging code)
     #print("client_info_hash: "+client_info_hash)
     #print("client_peer_id: "+client_peer_id)
     #print("client_port: "+client_port)
@@ -416,10 +376,10 @@ class Database:
         #each dictionary of client data can be contains an md5 key which references a list containing: (peer_id, is_seed,ipv4_dottedstring,client_port,ip_in_hex,port_in_hex)
         global master_info_hash_table
         master_info_hash_table=dict({})
-        #the idea is to wipe the database every hour or so for no particular reason
+        #the idea is to wipe the database every hour or so (for no particular reason)
         global initialization_time
         initialization_time=int(time.time())
-        #purge the database of stale peers
+        #needed to purge the database of stale peers every once in a while
         global last_database_cleanup
         last_database_cleanup=int(time.time())
 
@@ -529,6 +489,10 @@ class Database:
         elif 'client_ip' not in client_object:
             client_ip=client_remote_ip
 
+        #ipv6 addresses sometimes have the scope % padded at the end, need to strip that out
+        if client_ip.count('%') != 0:
+            client_ip=client_ip[:client_ip.rfind('%')]
+        
         #then check which version client ip is
         client_ip_object=ipaddress.ip_address(client_ip)
         #if it's version 4, replace ipv4 address
@@ -559,7 +523,7 @@ class Database:
         #client could be incomplete and not in the db
         #client could be a seeder and already in the db
         #client could be a seeder and not already in the db
-        
+
         #possible scenarios
         #if info_hash doesn't exist in master_table, create info_hash_table entry
         #then just always create a new peer (set the specified peer_id.md5 to that newpeer object)
@@ -613,6 +577,15 @@ class Database:
 
         #set the peer_id.md5 as the key to a new list object
         master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()]=self.createPeer(client_object['client_peer_id'],is_seed,client_port,ipv4address,ipv6address)
+        
+         #if the client was already in the db, and if that event is a stopped event, decrement the seeders or incomplete and remove that peer from the db
+        if 'client_event' in client_object:
+            if (client_object['client_event'].lower()=='Stopped'.lower()):
+                del master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()]
+                if (is_seed==True):
+                    master_info_hash_table[client_info_hash.hexdigest()]['complete']=master_info_hash_table[client_info_hash.hexdigest()]['complete']-1
+                if (is_seed!=True):
+                    master_info_hash_table[client_info_hash.hexdigest()]['incomplete']=master_info_hash_table[client_info_hash.hexdigest()]['incomplete']-1
         return
 
 
@@ -625,7 +598,7 @@ class Database:
     #types are (rawbytes, bool, string, int, string, string)
     def createPeer(self,peer_id,is_seed,client_port,client_ipv4_address,client_ipv6_address):
         #note that either ipv4 or ipv6 may be invalid
-        
+
         #convert IP to hexadecimal format
         #if dealing with an ipv4 address, then count the octets
         #split into 4 sections
@@ -635,7 +608,7 @@ class Database:
         elif client_ipv4_address != 'invalid':
             #dealing with an ipv4 address
             #but, could also be dealing with a DNS name, but how to check for that...
-            ip_list=client_ip_address.split('.')
+            ip_list=client_ipv4_address.split('.')
             for i in (range(len(ip_list))):
                 #print(str(ip_list[i]))
                 ip_list[i]=hex(int(ip_list[i]))
@@ -650,9 +623,9 @@ class Database:
             if client_ipv6_address.count(':') != 7:
                 client_ipv6_address_in_hex='invalid'
             elif client_ipv6_address.count(':') == 7:
-                temp_list=client_ipv6_address.split
+                temp_list=client_ipv6_address.split(':')
                 client_ipv6_address_in_hex=str(temp_list[0])
-                for i in range(1,7)
+                for i in range(1,8):
                     client_ipv6_address_in_hex=client_ipv6_address_in_hex+str(temp_list[i])
 
         #convert port to hex
@@ -662,7 +635,7 @@ class Database:
             client_port_in_hex='0'+client_port_in_hex
         #print(ip_port_hex)
 
-        #print(client_ip_address+":"+str(client_port))
+        #print(client_ipv4_address+":"+str(client_port))
         #print(client_ipv4_address_in_hex_no_port+client_port_in_hex)
 
         #need to store these in hex
@@ -864,46 +837,27 @@ class MainHandler(tornado.web.RequestHandler):
 
         current_client_info_hash=client_request_dictionary['client_info_hash']
         #print(client_request_dictionary)
-        clientWantsNormalOrCompactResponse='normal'
-        #retrieve relevant peerList from database
-        if 'client_compact' in client_request_dictionary:
-            #client_request_dictionary['client_compact']=0
-            if client_request_dictionary['client_compact'] == '1':
-                #print('compact client request detected')
-                clientWantsNormalOrCompactResponse='compact'
 
-        #get peerlist from database
-        #get_peerList(info_hash), returns a peerlist
-        peer_List = tracker_db.get_peerList(current_client_info_hash)
-        #could maybe, retrieve non-seeder list to return to a seeder
-        #or could just return the raw peer list for native parsing or fully parse it and return only the finished peer list
-        #instead of preparsing it in the function and finishing the parsing in main (architecture not pretty as-is)
-        #get_peerList(current_client_info_hash,normal)
-        #get_peerList(current_client_info_hash,compact)
-        #or like, remove the current client from the list when sending it back to them
-        #or like, specify a maximum number of peers to retrieve
-        ########################
-        info_hashes_table_keys=info_hash_table.keys()
-        peer_list=[]
-        if compactOrNormal.lower() == 'normal':
-            for i in (info_hashes_table_keys):
-                if (i != 'complete'):
-                    if (i != 'incomplete'):
-                        peer_list.append(info_hash_table[i][0])
-                        peer_list.append(info_hash_table[i][2])
-                        peer_list.append(info_hash_table[i][3])
-        elif compactOrNormal.lower() == 'compact':
-            for i in (info_hashes_table_keys):
-                if (i != 'complete'):
-                    if (i != 'incomplete'):
-                        peer_list.append(info_hash_table[i][4])
-                        peer_list.append(info_hash_table[i][5])
-        
-        
         #retrieve torrent statistics
         complete=tracker_db.get_complete(current_client_info_hash)
         incomplete=tracker_db.get_incomplete(current_client_info_hash)
 
+        #get peerlist from database and return the raw client objects (lists) for native parsing
+        #get_peerList(info_hash), returns a peer_list that is a list of list objects, each containing a different peer
+        peer_List = tracker_db.get_peerList(current_client_info_hash)
+        #each peer list returns containing: (peer_id, is_seed , created_time, port, port hex ,ipv4 (.), ipv4 hex, ipv6 (:), ipv6 hex)
+
+        #possible improvements
+        #could also remove the current client from the list before sending it back to them
+        #or like, specify a maximum number of peers to retrieve
+        #could maybe, retrieve non-seeder list to return to a seeder
+        #get_peerList(current_client_info_hash)  #would return all peers of an info_hash
+        #get_peerList(current_client_info_hash,'no_seeders')  #would return the non-seeders of an info_hash
+
+        #spec says "the tracker randomly selects peers to include in the response"
+        random.shuffle(peer_List)
+        print(peer_List)
+        
         client_object=client_request_dictionary
         #self.set_header('Content-Type', 'application/octet-stream')
         self.set_header('Content-Type', 'text/plain')
@@ -933,7 +887,6 @@ class MainHandler(tornado.web.RequestHandler):
         #print(bencoded_min_interval_string)
         #print(bencoded_min_interval_value)
 
-        #redundant code (from above's clientWantsNormalOrCompactResponse)
         if 'client_compact' in client_object:
             if client_object['client_compact'] == '1':
                 client_requested_compact=True
@@ -951,13 +904,21 @@ class MainHandler(tornado.web.RequestHandler):
         else:
             client_max_response_count=max_peers_in_response
 
+        total_available=int(len(peer_List))
+        if total_available < client_max_response_count:
+            response_count=total_available
+        elif total_available >= client_max_response_count:
+            response_count=client_max_response_count
+
+        print('response_count: ')
+        print(response_count)
         #output the inital bencoded dictionary that will be used for the entire response
         response_global=bencoded_complete_string+bencoded_complete_value+bencoded_incomplete_string+bencoded_incomplete_value+bencoded_interval_string+bencoded_interval_value+bencoded_min_interval_string+bencoded_min_interval_value+bencoded_peers_string
         self.write('d')
         self.write(response_global)
 
         #now to respond back with the peer list in the format the client requested
-        #okay now to figure out how to output the peer list as (dictionary w/peer_id , dictionary w/o peer_id, compact)
+        #figure out how to output the peer list as (dictionary w/peer_id , dictionary w/o peer_id, compact)
         #if raw_encoded_url_string.rfind('-') == -1:
         #binascii.a2b_hex
         #for normal dictionary responses, if the peer list is selected then need to send it out as bytes
@@ -971,30 +932,31 @@ class MainHandler(tornado.web.RequestHandler):
         #dictionary w/o peer list 1 string
         #output for compact type:
         #only 1 type but needs: 1string+1bitstream (peers) (can append e at the end)
-        if client_requested_compact == False:
-            total_available=int(len(peer_List)/3)
-            if total_available < client_max_response_count:
-                response_count=total_available
-            elif total_available >= client_max_response_count:
-                response_count=client_max_response_count
+        if client_requested_compact != True:
+            #for normal responses, prepare the list by bencoding the values in the response (skip the peer id)
+            #each peer in the list contains: (peer_id [0], is_seed [1], created_time [2], port [3], port hex [4],ipv4 (.) [5], ipv4 hex [6], ipv6 (:) [7], ipv6 hex [8])
+            for i in range (len(peer_List)):
+                peer_List[i][3]=bencode(peer_List[i][3],'int')
+                if peer_List[i][5] !='invalid':
+                    peer_List[i][5]=bencode(str(peer_List[i][5]),'string')
+                if peer_List[i][7] !='invalid':
+                    peer_List[i][7]=bencode(str(peer_List[i][7]),'string')
+            #now every item other than peer id's and compact values (the hex ones) have been bencoded
+            #print("peer_List: "+str(peer_List))
 
-            #for normal responses need to know if clients don't want a peer ID included in the response
+            #for normal responses, need to know if clients don't want a peer ID included in the response
             if 'client_no_peer_id' in client_object:
                 if client_object['client_no_peer_id'] == '1':
                     #if client selected no peer_id, then very easy to respond
-                    #build string normally and send it, then return
-                    for i in range (len(peer_List)):
-                        #if parsing the last item in a pair, assume that it's a port number and bencode it as an int, else assume it's a string (peer_id and ip)
-                        if i%3==2:
-                            peer_List[i]=bencode(peer_List[i],'int')
-                        elif i%3==1:
-                            peer_List[i]=bencode(str(peer_List[i]),'string')
-                    #now every item other than peer id's have been bencoded
-                    #print("peer_List: "+str(peer_List))
-
+                    #build bencoded dictionaries of peers to respond with, (store them in a python list), 
+                    #then append each bencoded dictionary to one another, 
+                    #format that as a bencoded list, send it, then return
                     bencoded_peer_array=[]
-                    for i in range (0,len(peer_List),3):
-                        bencoded_peer_array.append(bencode(bencoded_ip_string+str(peer_List[i+1])+bencoded_port_string+str(peer_List[i+2]),'dictionary'))
+                    for i in range (len(peer_List)):
+                        if peer_List[i][5] !='invalid':
+                            bencoded_peer_array.append(bencode(bencoded_ip_string+peer_List[i][5]+bencoded_port_string+peer_List[i][3],'dictionary'))
+                        if peer_List[i][7] !='invalid':
+                            bencoded_peer_array.append(bencode(bencoded_ip_string+peer_List[i][7]+bencoded_port_string+peer_List[i][3],'dictionary'))
 
                     bencoded_peer_list=str(bencoded_peer_array[0])
                     for i in range (response_count):
@@ -1007,7 +969,7 @@ class MainHandler(tornado.web.RequestHandler):
                     #self.finish()
                     return
 
-            #okay so client did not request a compact response and did not say no_peer_id's...let's do this
+            #okay so client did not request a compact response and did not say no_peer_id's and have both ipv4 and ipv6 addresses to respond with...let's do this
             #for normal response peer_list is (peer_id,ip, port,peer_id,ip, port,peer_id,ip, port,peer_id,ip, port...n), so multiples of 3
             #need to write prefix
             #need to cycle through peerlist, then
@@ -1023,40 +985,61 @@ class MainHandler(tornado.web.RequestHandler):
             self.write('l')
             #this needs a different algorithm to incorporate response_count and to cycle properly
             i=0  #increment by 1 each loop, keep going for this many total loops
-            k=0 #increment by 3 each loop, use this to reference the peer_List
             #for normal response peer_list is (peer_id,ip, port,peer_id,ip, port,peer_id,ip, port,peer_id,ip, port...n), so multiples of 3, starting with peer id then -> ip -> port
+            #each peer in the list contains: (peer_id [0], is_seed [1], created_time [2], port [3], port hex [4],ipv4 (.) [5], ipv4 hex [6], ipv6 (:) [7], ipv6 hex [8])
             while i < response_count:
-                self.write('d')
-                self.write(bencoded_port_string)
-                peer_List[k+2]=bencode(peer_List[k+2],'int')
-                self.write(peer_List[k+2])
+                if peer_List[i][5] !='invalid':
+                    self.write('d')
+                    self.write(bencoded_peer_id_string)
+                    #spec says that peer_id's must be 20 bytes, assume that's true here (since this should have been checked before being input into db)
+                    self.write('20:')
+                    #need to find out of peer id is in ut format, binary format or shadow's format
+                    if str(peer_List[i][0].rfind('-')) =='-1':
+                        #if there is no -, then assume it's pure hex, so just decode and send
+                        peer_List[i][0]=binascii.a2b_hex(peer_List[i][0])
+                        self.write(peer_List[i][0])
+                    else:
+                        #if there are -'s then need to separate into two parts
+                        #write the first part
+                        #decode the second part
+                        #write the second part (don't save)
+                        peer_id_prefix=peer_List[i][0][:peer_List[i][0].rfind('-')+1]
+                        self.write(peer_id_prefix)
+                        peer_id_binary_part=peer_List[i][0][peer_List[i][0].rfind('-')+1:]
+                        peer_id_binary_part=binascii.a2b_hex(peer_id_binary_part)
+                        self.write(peer_id_binary_part)
+                    self.write(bencoded_ip_string)
+                    self.write(peer_List[i][5])
+                    self.write(bencoded_port_string)
+                    self.write(peer_List[i][3])
+                    self.write('e') #close peer dictionary entry
 
-                self.write(bencoded_ip_string)
-                peer_List[k+1]=bencode(str(peer_List[k+1]),'string')
-                self.write(peer_List[k+1])
-
-                self.write(bencoded_peer_id_string)
-                #spec says that peer_id's must be 20 bytes, assume that's true here (since this should have been checked before being input into db)
-                self.write('20:')
-                #need to find out of peer id is in ut format, binary format or shadow's format
-                if peer_List[k].rfind('-') == -1:
-                    #if there is no -, then assume it's pure hex, so just decode and send
-                    peer_List[k]=binascii.a2b_hex(peer_List[k])
-                    self.write(peer_List[k])
-                else:
-                    #if there are -'s then need to separate into two parts
-                    #write the first part
-                    #decode the second part
-                    #write the second part (don't save)
-                    peer_id_prefix=peer_List[k][:peer_List[k].rfind('-')+1]
-                    self.write(peer_id_prefix)
-                    peer_id_binary_part=peer_List[k][peer_List[k].rfind('-')+1:]
-                    peer_id_binary_part=binascii.a2b_hex(peer_id_binary_part)
-                    self.write(peer_id_binary_part)
-                self.write('e') #close peer dictionary entry
+                if peer_List[i][7] !='invalid':
+                    self.write('d')
+                    self.write(bencoded_peer_id_string)
+                    #spec says that peer_id's must be 20 bytes, assume that's true here (since this should have been checked before being input into db)
+                    self.write('20:')
+                    #need to find out of peer id is in ut format, binary format or shadow's format
+                    if str(peer_List[i][0].rfind('-')) =='-1':
+                        #if there is no -, then assume it's pure hex, so just decode and send
+                        peer_List[i][0]=binascii.a2b_hex(peer_List[i][0])
+                        self.write(peer_List[i][0])
+                    else:
+                        #if there are -'s then need to separate into two parts
+                        #write the first part
+                        #decode the second part
+                        #write the second part (don't save)
+                        peer_id_prefix=peer_List[i][0][:peer_List[i][0].rfind('-')+1]
+                        self.write(peer_id_prefix)
+                        peer_id_binary_part=peer_List[i][0][peer_List[i][0].rfind('-')+1:]
+                        peer_id_binary_part=binascii.a2b_hex(peer_id_binary_part)
+                        self.write(peer_id_binary_part)
+                    self.write(bencoded_ip_string)
+                    self.write(peer_List[i][7])
+                    self.write(bencoded_port_string)
+                    self.write(peer_List[i][3])
+                    self.write('e') #close peer dictionary entry
                 i=i+1
-                k=k+3
-                    
             self.write('e') #close list entry
             #when done, need to write postfix
             self.write('e') #final postfix, close root dictionary
@@ -1068,30 +1051,54 @@ class MainHandler(tornado.web.RequestHandler):
         #compact responses take the form: 5:peers48:[binary] and are embedded as a key into the root dictionary of the bencoded response, (so there's a post fix "e" after the peers list)
         #not sure if the 48 is the length of the binary "string" in binary or the length of the binary "string" in hex, (assume it's binary first)
         if client_requested_compact == True:
-            #for compact response peer_list is (ip_in_hex, port_in_hex,ip_in_hex, port_in_hex,ip_in_hex, port_in_hex,...n), so multiples of 2
-            total_available=int(len(peer_List)/2)
-            if total_available < client_max_response_count:
-                response_count=total_available
-            elif total_available >= client_max_response_count:
-                response_count=client_max_response_count
+            #each peer in the list contains: (peer_id [0], is_seed [1], created_time [2], port [3], port hex [4],ipv4 (.) [5], ipv4 hex [6], ipv6 (:) [7], ipv6 hex [8])
 
-            #combine the ip/port strings with values, every 3 is 1 dictionary
+            #combine the ip/port strings with values
             peer_array=[]
-            for i in range (0,len(peer_List),2):
-                peer_array.append(peer_List[i]+peer_List[i+1])
+            for i in range (len(peer_List)):
+                if peer_List[i][6] !='invalid':
+                    peer_array.append(peer_List[i][6]+peer_List[i][4])
 
-            peer_list_in_hex=peer_array[0]
-            for i in range (response_count):
-                if i!=0:
-                    peer_list_in_hex=peer_list_in_hex+peer_array[i]
+            #print(peer_array)
+            if len(peer_array) >0:
+                peer_list_in_hex=peer_array[0]
+                #every value does not get appended to the peer_array, only the ipv4 ones
+                #so need to pick whichever is lower to respond with, the response_count or the len(peer_array)
+                if len(peer_array) < response_count:
+                    response_count=len(peer_array)
+                for i in range(response_count):
+                    if i!=0:
+                        peer_list_in_hex=peer_list_in_hex+peer_array[i]
 
-            peer_list_in_binary=binascii.a2b_hex(peer_list_in_hex)
-            peer_list_length=str(len(peer_list_in_binary))
+                peer_list_in_binary=binascii.a2b_hex(peer_list_in_hex)
+                #peer_list_in_binary=peer_list_in_hex
+                peer_list_length=str(len(peer_list_in_binary))
+                #   48:[binary]  with a trailing e
+                self.write(peer_list_length)
+                self.write(':')
+                self.write(peer_list_in_binary)
 
-            #   48:[binary]  with a trailing e
-            self.write(peer_list_length)
-            self.write(':')
-            self.write(peer_list_in_binary)
+            peer_array=[]
+            for i in range (len(peer_List)):
+                if peer_List[i][8] !='invalid':
+                    peer_array.append(peer_List[i][8]+peer_List[i][4])
+
+            if len(peer_array) >0:
+                if len(peer_array) < response_count:
+                    response_count=len(peer_array)
+                peer_list_in_hex=peer_array[0]
+                for i in range (response_count):
+                    if i!=0:
+                        peer_list_in_hex=peer_list_in_hex+peer_array[i]
+
+                self.write(bencoded_peers6_string)
+                peer_list_in_binary=binascii.a2b_hex(peer_list_in_hex)
+                peer_list_length=str(len(peer_list_in_binary))
+                #   48:[binary]  with a trailing e
+                self.write(peer_list_length)
+                self.write(':')
+                self.write(peer_list_in_binary)
+
             self.write('e')
             self.flush()
             return

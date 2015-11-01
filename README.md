@@ -31,12 +31,12 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 2. point your torrents to http://192.168.1.50:6969/announce where 192.168.1.50 gets substituted for your IP obtained from ipconfig (for lans)
 3. Note: If the firewall annoyance pops up, add as an exception.
 
-## Important Release Notes:
+## Release Notes Summary:
 
-- Runs on port 6969, with a requested check-in interval of 4 minutes by default (change via command line)
+- By default, runs on port 6969, with a check-in interval of 4 minutes
 - Currently no scrape/statistics/private/logging/obfuscation features
-- Intended use case is in a LAN enviornment, will also work on the internet, but not currently optimized for it.
-- I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP support and obfuscation if there's any interest in doing so. That's the natural extension to this project after all. Just message me over git.
+- Intended use case is for LANs. Will also work on the internet, but not currently optimized for it.
+- If there's any interest in doing so, I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP/obfuscation support, since that's the natural extension to this project. Just message me over git.
 
 ## Advanced Usage Guide:
 ```
@@ -51,7 +51,7 @@ Windows (binary): >start "" C:\Users\User\Downloads\py3bt_tracker.exe
 Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py --port=6969 -i=30
 ```
 
-Notes: obfuscation not currently implemented, planned for v2.0 if there's enough interest
+Notes: obfuscation not currently implemented, planned for v2.0.0 if there's enough interest
 
 ## License:
 Pick your License: GPL (any) or BSD (any) or MIT/Apache

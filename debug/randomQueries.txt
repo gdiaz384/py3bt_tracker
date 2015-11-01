@@ -1,4 +1,6 @@
-﻿/announce?peer_id=aaaaaaaaaaaaaaaaaaaa&info_hash=aaaaaaaaaaaaaaaaaaaa
+﻿/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b5R6BH%04%0e%11%f0%c6&port=35104&uploaded=0&downloaded=0&left=0&corrupt=0&key=607292D8&event=started&numwant=200&compact=1&no_peer_id=1
+
+/announce?peer_id=aaaaaaaaaaaaaaaaaaaa&info_hash=aaaaaaaaaaaaaaaaaaaa
 &port=6881&left=0&downloaded=100&uploaded=0&compact=1
 &ipv6=2001%3A%3A53Aa%3A64c%3A0%3A7f83%3Abc43%3Adec9
 

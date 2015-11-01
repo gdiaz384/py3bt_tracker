@@ -8,38 +8,21 @@ Currently implemented using a multidimentional array in memory and the Tornado W
 
 google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
 
-Usage guide:
-1) double click on the .exe for your os
-2) point your torrents to http://127.0.0.1:9000/announce 
-where 127.0.0.1 is substituted for your IP obtained from ipconfig (for lans)
-Note: If the firewall annoyance pops up, add as an exception.
-
-Important Release Notes:
--Runs on port 9000, with a requested check-in interval of 4 minutes by default (change via command line)
-
-3) (if crazy enough to use this on the internets) public ip can be obtained from icanhazip.com, and remember to port forward
-^-not intended use case but should still work maybe-^
-
-Current version: 1.0.0-rc1
+Current version: 1.0.0-rc2
 
 ###stop reading now###
 
-feature/bug Todo list:
+Version 1 Todo list:
 -incomplete and complete should increment/decrement -partially done, need to improve "update" code still
--text/plain bencoded response -done
--error codes should be -done
-1) text/plain -done
-2) human readable -done
-3) sent back as becoded responses -done
--figure out how to use github -partially done
 -add ipv6 support at some point -will get around to it eventually...
 -Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually...
 -figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x
--change db key from peer_id to ip/port combination to limit potential for abuse in untrustworthy enviornments
--udp tracker support - beep 15 -Does Tornado even know what UDP is? maybeh
--will also add obfuscation feature if I ever get that bored
--improve performance for use in WANs (production quality code optimizations + fully async web server)
 -maybe implement logging, maybe
+-Version 2 Todo list:
+-change db key from peer_id to ip/port combination to limit potential for abuse in untrustworthy enviornments
+-improve performance for use in WANs (production quality code optimizations + fully async web server)
+-will also add obfuscation feature if I ever get that bored
+-udp tracker support - beep 15 -Does Tornado even know what UDP is? maybeh
 """
 
 import hashlib
@@ -55,18 +38,44 @@ import tornado.web
 import tornado.httpserver
 import tornado.httputil
 #from tornado.concurrent import Future
-from tornado.options import define, options, parse_command_line
-
-define("port", default=9000, help="run on the given port", type=int)
-define("debug", default=False, help="run in debug mode")
+#from tornado.options import define, options, parse_command_line
+import argparse
 
 #configurable settings
-tracker_port=9000
-request_interval=40
+tracker_port=6969
+request_interval=1
 #wipe_database every this many seconds, 3600 seconds = 1 hr
 #database_lifespan=3600
 database_lifespan=360
-max_peers_in_response=30
+max_peers_in_response=50
+enable_obfuscation=False
+
+#add command line options
+command_Line_parser=argparse.ArgumentParser()
+command_Line_parser.add_argument("-p", "--port", help="select which port to run on (int)",default=tracker_port,type=int)
+command_Line_parser.add_argument("-i", "--client_request_interval", help="how often should clients check the server (min)",default=request_interval,type=int)
+command_Line_parser.add_argument("-o", "--enable_obfuscation", help="seed database with random IP addresses", action="store_true")
+
+#parse command line settings
+command_Line_arguments=command_Line_parser.parse_args()
+
+tracker_port=command_Line_arguments.port
+#print("specified port: " + str(tracker_port))
+
+request_interval=command_Line_arguments.client_request_interval
+#print("interval in min: " + str(request_interval))
+request_interval=request_interval*60
+#print("interval in seconds: " + str(request_interval))
+
+if command_Line_arguments.enable_obfuscation:
+    enable_obfuscation=True
+#print("enable_obfuscation: " + str(enable_obfuscation))
+
+
+#define("port", default=9000, help="run on the given port", type=int)
+#define("obfuscation", default=False, help="obfuscation")
+#define("debug", default=False, help="run in debug mode")
+#print("user selected the following port: " + str(port))
 
 #internal variables
 #clients will receive an error if they request more than this (in seconds)
@@ -230,6 +239,8 @@ def parseRawRequest(rawquery):
     client_key="invalid"
     client_trackerid="invalid"
     client_corrupt="invalid"
+    client_ipv4="invalid"
+    client_ipv6="invalid"
 
     requestObject=({})
 
@@ -329,6 +340,19 @@ def parseRawRequest(rawquery):
         pass
         #print("error: corrupt not present")
 
+    if ('ipv4' in client_rawRequestContainer) == (True):
+        #ipv4 addresses should not be url encoded, only ipv6, but w/e
+        client_ipv4=urllib.parse.unquote(client_rawRequestContainer["ipv4"])
+    else:
+        pass
+        #print("error: ipv4 not present")
+
+    if ('ipv6' in client_rawRequestContainer) == (True):
+        client_ipv6=urllib.parse.unquote(client_rawRequestContainer["ipv6"])
+    else:
+        pass
+        #print("error: ipv6 not present")
+        
     #print_client_info (debugging code)
     #print("client_info_hash: "+client_info_hash)
     #print("client_peer_id: "+client_peer_id)
@@ -344,6 +368,8 @@ def parseRawRequest(rawquery):
     #print("client_key: "+client_key)
     #print("client_trackerid: "+client_trackerid)
     #print("client_corrupt: "+client_corrupt)
+    #print("client_ipv4: "+client_ipv4)
+    #print("client_ipv6: "+client_ipv6)
 
     #so now need to return an object the values as keys
     #rebuild the dictionary!
@@ -375,6 +401,10 @@ def parseRawRequest(rawquery):
         requestObject["client_trackerid"]=client_trackerid
     if client_corrupt != "invalid":
         requestObject["client_corrupt"]=client_corrupt
+    if client_ipv4 != "invalid":
+        requestObject["client_ipv4"]=client_ipv4
+    if client_ipv6 != "invalid":
+        requestObject["client_ipv6"]=client_ipv6
     return requestObject
 
 
@@ -408,10 +438,8 @@ class Database:
     #possible scenarios are: non-compact, non-compact no seeds, compact, compact no seeds
     #peer_List = tracker_db.get_peerList(current_client_info_hash,clientWantsNormalOrCompactResponse)
     #values are (hash,normal/compact)
-    def get_peerList(self,client_info_hash,compactOrNormal='normal'):
-        #itterate through that list to create the compact peer list of IPs/ports (in hex)
-        #-each torrent_table (linked to an info_hash) contains peers+associated data (named after peer_id), an integer of incomplete (non seed peers), and completed (seeders)
-        #create a new table using the table_id and an individual peer of type list containing (a peer_id,is_seed,address,client_port,address_hex, port_hex)
+    def get_peerList(self,client_info_hash):
+        #itterate through that list to create the peer list of IPs/ports
 
         current_query=hashlib.md5()
         current_query.update(client_info_hash.encode('utf-8'))
@@ -421,19 +449,10 @@ class Database:
         #md5 hashes of the peer_id are used as keys
         info_hashes_table_keys=info_hash_table.keys()
         peer_list=[]
-        if compactOrNormal.lower() == 'normal':
-            for i in (info_hashes_table_keys):
-                if (i != 'complete'):
-                    if (i != 'incomplete'):
-                        peer_list.append(info_hash_table[i][0])
-                        peer_list.append(info_hash_table[i][2])
-                        peer_list.append(info_hash_table[i][3])
-        elif compactOrNormal.lower() == 'compact':
-            for i in (info_hashes_table_keys):
-                if (i != 'complete'):
-                    if (i != 'incomplete'):
-                        peer_list.append(info_hash_table[i][4])
-                        peer_list.append(info_hash_table[i][5])
+        for i in (info_hashes_table_keys):
+            if (i != 'complete'):
+                if (i != 'incomplete'):
+                    peer_list.append(info_hash_table[i])
         #print(peer_list)
         return peer_list
 
@@ -464,12 +483,70 @@ class Database:
         else:
             is_seed=False
 
-        #very easy to abuse this if peer_id.md5 hashes are used as keys, change db key to limit potential abuse
+        #client can:
+        #ip (4)
+        #ip (6)
+        #ip (4), ipv6
+        #ip (4), ipv4, ipv6
+        #ip (6), ipv4
+        #ip (6), ipv4, ipv6
+
+        #initalize ipv4 and ipv6 addresses to invalid
+        ipv4address='invalid'
+        ipv6address='invalid'
+        #check for ipv4 and ipv6
+        if 'ipv4' in client_object:
+            ipv4address=client_object['ipv4']
+        if 'ipv6' in client_object:
+            ipv6address=client_object['ipv6']
+
+        #strip out port if present, 
+        #uh..how to do that for ipv4...does it come in as ipv4:port or [ipv4]:port ?
+        #just do both
+        if ipv4address.count(']') != 0:
+            temp_list=urllib.parse.unquote(ipv4address).split(']')
+            ipv4address=list1[0][1:len(list1[0])+1]
+        if ipv4address.count(':') != 0:
+            temp_list=urllib.parse.unquote(ipv4address).split(':')
+            ipv4address=list1[0][0:len(list1[0])+1]
+
+        #strip out port ipv6 port
+        if ipv6address.count(']') != 0:
+            temp_list=urllib.parse.unquote(ipv6address).split(']')
+            ipv6address=list1[0][1:len(list1[0])+1]
+        #now have ipv4, ipv6, raw ip and ip (argument)
+
+        #if &ip= specified (of undetermined version), that takes precidence over raw ip used to connect to server
         if 'client_ip' in client_object:
             client_ip=client_object['client_ip']
+            #spec says client may send a DNS name in the &ip= argument, 
+            #if dns name, then need to convert it to raw ip form
+            #can actually just do a blind dns lookup on an address (ip or dns) and it will always return the ip, could detect it as a raw ip or dns name somehow maybe
+            client_ip=socket.getaddrinfo(client_ip,80)[0][4][0]
+            #the above code means "do a dns lookup on client_ip and place the result of that lookup into an object" (a random port is required cuz w/e)
+            #that object is a list filled all of the returned dns entries. each list entry is another list where each entry is a tuple (value pairs)
+            #[0] enter the first list object and go to the 4th tuple [4] and then fetch the first item in that tuple [0]
         elif 'client_ip' not in client_object:
             client_ip=client_remote_ip
 
+        #then check which version client ip is
+        client_ip_object=ipaddress.ip_address(client_ip)
+        #if it's version 4, replace ipv4 address
+        if str(client_ip_object.version)=='4':
+            ipv4address=str(client_ip_object)
+        #from spec: "In case of IPv6 address [...] it[, an &ip= argument,] indicates only that client can communicate via IPv6."
+        #so does that mean ignore it completely or what?
+        #if it's version 6, replace ipv6 address
+        if str(client_ip_object.version)=='6':
+            ipv6address=str(client_ip_object)
+
+        #ipv6 is now determined, and is a string, if not invalid, need to expand to full hex
+        if ipv6address != 'invalid':
+            ipv6address=str(ipaddress.ip_address(ipv6address).exploded)
+
+        #but! should not respond back with 'invalid' addresses in final response, so check for 'invalid' string
+
+        #always use the port from the &port= option, the ports included in the addresses above that were stripped out have no legitimate use cases
         client_port=client_object['client_port']
 
         #this returns a dictionary object (completed: int, incomplete: int,peer_id.md5 : client_list)
@@ -478,6 +555,11 @@ class Database:
         #master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()]
         #get the ip using master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()][2]
 
+        #client could be incomplete and already in the db
+        #client could be incomplete and not in the db
+        #client could be a seeder and already in the db
+        #client could be a seeder and not already in the db
+        
         #possible scenarios
         #if info_hash doesn't exist in master_table, create info_hash_table entry
         #then just always create a new peer (set the specified peer_id.md5 to that newpeer object)
@@ -486,9 +568,11 @@ class Database:
         if client_info_hash.hexdigest() not in master_info_hash_table:
             #set the info_hash.md5 as the key to a new dictionary object
             master_info_hash_table[client_info_hash.hexdigest()]=self.createInfoHashTable()
+
+        #if client doesn't exists in the info_hash table, then add+1 to the list of seeders/incomplete peers        
+        if client_peer_id.hexdigest() not in master_info_hash_table[client_info_hash.hexdigest()]:
             #if this new client is a seed, increment completes
             if (is_seed==True):
-                #Note: this will "taint" the completed pool, so total "finished" now includes the inital seeder
                 master_info_hash_table[client_info_hash.hexdigest()]['complete']=master_info_hash_table[client_info_hash.hexdigest()]['complete']+1
             #if the client is a new client and not a seed, increment the incomplete list
             elif (is_seed!=True):
@@ -500,14 +584,35 @@ class Database:
                 master_info_hash_table[client_info_hash.hexdigest()]['complete']=master_info_hash_table[client_info_hash.hexdigest()]['complete']+1
                 master_info_hash_table[client_info_hash.hexdigest()]['incomplete']=master_info_hash_table[client_info_hash.hexdigest()]['incomplete']-1
 
-        #this has potential for abuse if a peer floods the tracker with a target ip using the same info hash and different peer_id's
+        #so how to uniquely identify a peer?
+        #currently this has potential for abuse if a peer gives the tracker a target ip using the same info hash and a fake &ip= value
         #will redirect the swarm to try to form connections to the target ip as a potential DDoS to that ip
         #or even to change the information of another peer in the db by finding out their peer id
         #potential fix: might be better to be hash the IP/port combination of the peer instead of the easily spoofable peer_id and use that as the db key instead
+        #however, the raw client source port is random, and binding that could lead to each client having multiple entries and the destination post is spoofable
+        #essentially, the issue is that detecting unique peers via raw information is very unreliable due to NAT and load balancers situations
+        #and yet and information given by the client itself is spoofable, therefore no solution exists for identifying clients that doesn't break *something*
+        #so multiple users behind the same NAT can't use the tracker or a single user (possibly malicious) could enter fake data into the DB
+        #So no good options available soft approaches are a hueristic analysis of DB or de-duplicate entries, or have tracker connect to client to verify connectivity (NO)
+        #could also give clients keys when they first connect and at least require clients to respond with it back. But that doesn't solve the initial connection being added to the db
+
+        #could blindly add clients to the DB initially, but give them an extremely low required interval to check back in, say 1 min (any maybe respond back with an empty peer list)
+        #only legitimate clients would respond back, say in a minute or two, and could respond a 2nd time with an updated (longer) interval
+        #so how to identify if the client has spoken to the tracker before?, hash a client generated key + a tracker instance ID
+        #key can be client generated, stored server or server generated, then just hash the key+tracker instance id and send that to the client as a trackerid
+        #the client responds back with a peer id and a tracker id, and maybe a key, if the client has spoken before, a key will be present in their peer_id entry
+        #then take that stored key and hash it with the tracker instance id, they are a legitimate client if the resulting hash matches the one reported back by the client
+        #if they are not, take the key they provided (or generate one) and store it, and send back a new trackerid for them to return (try again basically)
+        #then after they have responded back, add clients to a second list of "verified" peers (those who have at least responded back), and give them the peer list
+        #for MITM exploits that try to find the swarm's peer_ids or keys, just run the server over TLS~
+        #and that is really complicated, but it would work, I think maybe and will save for version 2.0.0
+
         #however, this is not relevant in a LAN enviornment and won't form enough connections per second for a lasting DoS due to the default behavior of end-user
-        #clients to back off for extremely long periods after a failed attempt to contact a tracker so leave it, but change this for more optimized use on the internets
+        #clients to back off for extremely long periods after a failed attempt to contact a peer so leave it
+        #can't really change it without breaking clients behind NATs in one way or another or dramatically increases the server code's complexity, doing so would also delay peer discovery by 1 min
+
         #set the peer_id.md5 as the key to a new list object
-        master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()]=self.createPeer(client_object['client_peer_id'],is_seed,client_ip,client_port)
+        master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()]=self.createPeer(client_object['client_peer_id'],is_seed,client_port,ipv4address,ipv6address)
         return
 
 
@@ -516,14 +621,18 @@ class Database:
         return {'complete':0,'incomplete':0}
 
 
-    #each peer list returns containing: (peer_id, is_seed,ip_address,client_port,ip_hex,port_hex,created time)
+    #each peer list returns containing: (peer_id, is_seed , created_time, port, port hex ,ipv4 (.), ipv4 hex, ipv6 (:), ipv6 hex)
     #types are (rawbytes, bool, string, int, string, string)
-    def createPeer(self,peer_id,is_seed,client_ip_address,client_port):
+    def createPeer(self,peer_id,is_seed,client_port,client_ipv4_address,client_ipv6_address):
+        #note that either ipv4 or ipv6 may be invalid
+        
         #convert IP to hexadecimal format
         #if dealing with an ipv4 address, then count the octets
         #split into 4 sections
         #convert to hex, combine the hex pieces+hexed port
-        if client_ip_address.count('.') == 3:
+        if client_ipv4_address == 'invalid':
+            client_ipv4_address_in_hex='invalid'
+        elif client_ipv4_address != 'invalid':
             #dealing with an ipv4 address
             #but, could also be dealing with a DNS name, but how to check for that...
             ip_list=client_ip_address.split('.')
@@ -533,12 +642,18 @@ class Database:
                 if len(ip_list[i]) != 4:
                     ip_list[i]=ip_list[i][:2]+'0'+ip_list[i][2:]
                 #print(str(ip_list[i]))
-            client_address_in_hex_no_port=str(ip_list[0])[2:]+str(ip_list[1])[2:]+str(ip_list[2])[2:]+str(ip_list[3])[2:]
-        else:
-            #dealing with an ipv6 address here, 
-            #or a dns name without exactly 3 dots
-            #might want to implement this at some point, maybeh
-            address_no_port=client_ip_address
+            client_ipv4_address_in_hex=str(ip_list[0])[2:]+str(ip_list[1])[2:]+str(ip_list[2])[2:]+str(ip_list[3])[2:]
+
+        if client_ipv6_address=='invalid':
+            client_ipv6_address_in_hex='invalid'
+        elif client_ipv6_address!='invalid':
+            if client_ipv6_address.count(':') != 7:
+                client_ipv6_address_in_hex='invalid'
+            elif client_ipv6_address.count(':') == 7:
+                temp_list=client_ipv6_address.split
+                client_ipv6_address_in_hex=str(temp_list[0])
+                for i in range(1,7)
+                    client_ipv6_address_in_hex=client_ipv6_address_in_hex+str(temp_list[i])
 
         #convert port to hex
         #print(client_port)
@@ -548,10 +663,11 @@ class Database:
         #print(ip_port_hex)
 
         #print(client_ip_address+":"+str(client_port))
-        #print(client_address_in_hex_no_port+client_port_in_hex)
+        #print(client_ipv4_address_in_hex_no_port+client_port_in_hex)
 
         #need to store these in hex
-        return [peer_id, is_seed, client_ip_address, client_port, client_address_in_hex_no_port, client_port_in_hex, int(time.time())]
+        #each peer list returns containing: (peer_id, is_seed , created_time, port, port hex ,ipv4 (.), ipv4 hex, ipv6 (:), ipv6 hex)
+        return [peer_id, is_seed, int(time.time()), client_port, client_port_in_hex, client_ipv4_address, client_ipv4_address_in_hex, client_ipv6_address, client_ipv6_address_in_hex ]
 
 	#compare current time with last_peer_update, if peer exists, and if current time-last_peer_update < minimum_interval then client is silly
     def clientIsSilly(self,client_object):
@@ -572,7 +688,7 @@ class Database:
         #print('pie2')
         if client_info_hash.hexdigest() in master_info_hash_table:
             if client_peer_id.hexdigest() in master_info_hash_table[client_info_hash.hexdigest()]:
-                last_peer_update=master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()][6]
+                last_peer_update=master_info_hash_table[client_info_hash.hexdigest()][client_peer_id.hexdigest()][2]
                 if int(time.time())-last_peer_update < minimum_interval:
                     #print('silly client found')
                     return True
@@ -612,7 +728,7 @@ class Database:
                 if k == 'incomplete':
                     continue
                 #print(master_info_hash_table[i][k])  #the data of a peer in a torrent's info_hash table+ complete/incomplete
-                if int(time.time())-master_info_hash_table[i][k][6] > consider_peers_dead_after:
+                if int(time.time())-master_info_hash_table[i][k][2] > consider_peers_dead_after:
                     #remove_list.append(k)
                     print(master_info_hash_table[i][k])
                     del master_info_hash_table[i][k]
@@ -757,8 +873,8 @@ class MainHandler(tornado.web.RequestHandler):
                 clientWantsNormalOrCompactResponse='compact'
 
         #get peerlist from database
-        #get_peerList(info_hash,compact status as normal or minimal), returns a peerlist
-        peer_List = tracker_db.get_peerList(current_client_info_hash,clientWantsNormalOrCompactResponse)
+        #get_peerList(info_hash), returns a peerlist
+        peer_List = tracker_db.get_peerList(current_client_info_hash)
         #could maybe, retrieve non-seeder list to return to a seeder
         #or could just return the raw peer list for native parsing or fully parse it and return only the finished peer list
         #instead of preparsing it in the function and finishing the parsing in main (architecture not pretty as-is)
@@ -766,7 +882,24 @@ class MainHandler(tornado.web.RequestHandler):
         #get_peerList(current_client_info_hash,compact)
         #or like, remove the current client from the list when sending it back to them
         #or like, specify a maximum number of peers to retrieve
-
+        ########################
+        info_hashes_table_keys=info_hash_table.keys()
+        peer_list=[]
+        if compactOrNormal.lower() == 'normal':
+            for i in (info_hashes_table_keys):
+                if (i != 'complete'):
+                    if (i != 'incomplete'):
+                        peer_list.append(info_hash_table[i][0])
+                        peer_list.append(info_hash_table[i][2])
+                        peer_list.append(info_hash_table[i][3])
+        elif compactOrNormal.lower() == 'compact':
+            for i in (info_hashes_table_keys):
+                if (i != 'complete'):
+                    if (i != 'incomplete'):
+                        peer_list.append(info_hash_table[i][4])
+                        peer_list.append(info_hash_table[i][5])
+        
+        
         #retrieve torrent statistics
         complete=tracker_db.get_complete(current_client_info_hash)
         incomplete=tracker_db.get_incomplete(current_client_info_hash)
@@ -978,7 +1111,7 @@ class InvalidRequest(tornado.web.RequestHandler):
         #self.finish()
 
 def main():
-    parse_command_line()
+    #parse_command_line()
     global tracker_db
     tracker_db = Database()
     #the only valid request is /announce

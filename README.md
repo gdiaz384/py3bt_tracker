@@ -10,12 +10,12 @@ google_define('ephemeral') #returns: adjective - lasting for a very short time -
 
 ## Key Features:
 
-1. Works
-2. Prebuilt binaries
-3. No external dependencies or configuration required
-4. Permissive license
-5. Standards compliant
-6. Easy to rebuild from source if so inclined (check release_notes.txt for detailed instructions)
+- Works
+- Prebuilt binaries
+- No external dependencies or configuration required
+- Permissive license
+- Standards compliant
+- Easy to rebuild from source if so inclined (check release_notes.txt for detailed instructions)
 
 ## Download:
 
@@ -33,10 +33,10 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 
 ## Important Release Notes:
 
-1. Runs on port 6969, with a requested check-in interval of 4 minutes by default (change via command line)
-2. Currently no scrape/statistics/ipv6/private/logging features, although IPv6 support is planned
-3. Intended use case is in a LAN enviornment, will also work on the internet, but not currently optimized for it.
-4. I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP support and obfuscation if there's any interest in doing so. That's the natural extension to this project after all. However, if there's no interest, I'm stopping development after adding IPv6 support since that's as far as my personal use case goes.
+- Runs on port 6969, with a requested check-in interval of 4 minutes by default (change via command line)
+- Currently no scrape/statistics/ipv6/private/logging features, although IPv6 support is planned
+- Intended use case is in a LAN enviornment, will also work on the internet, but not currently optimized for it.
+- I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP support and obfuscation if there's any interest in doing so. That's the natural extension to this project after all. However, if there's no interest, I'm stopping development after adding IPv6 support since that's as far as my personal use case goes.
 
 ## Example usage:
 ```

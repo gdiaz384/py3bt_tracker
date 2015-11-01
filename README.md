@@ -6,7 +6,7 @@ The development emphasis is on zero-configuration "just works" software.
 
 Currently implemented using a multidimentional array in memory and the Tornado Web Server (http).
 
-google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
+google_define('ephemeral') #returns: adjective - lasting for a very short time, transient, short-lived, brief
 
 ## Key Features:
 
@@ -20,8 +20,8 @@ google_define('ephemeral') #returns: adjective - lasting for a very short time -
 ## Download:
 
 ```
-Latest Release: 1.0.0-rc.1
-In Development: 1.0.0-rc.2
+Latest Release: 1.0.0
+In Development: stopped, pm me with a use case/feature to add
 ```
 Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
 
@@ -46,13 +46,13 @@ Syntax: py3bt_tracker {-p=9000} {-i=30} {-o}
 >py3bt_tracker
 >py3bt_tracker --port=6969
 >py3bt_tracker -p=6969
->py3bt_tracker -p=6969 -i=4
->py3bt_tracker -p=80 --client_request_interval=15
+>py3bt_tracker --port=9000 --client_request_interval=4
+>py3bt_tracker -p=80 -i=15
 Windows (binary): >start "" C:\Users\User\Downloads\py3bt_tracker.exe --port=9000
 Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py -i=30
 ```
 
-Notes: obfuscation not currently implemented, planned for v2.0.0 if there's enough interest
+Notes: obfuscation not currently implemented, planned for 2.0.0 if there's enough interest
 
 ## License:
 Pick your License: GPL (any) or BSD (any) or MIT/Apache

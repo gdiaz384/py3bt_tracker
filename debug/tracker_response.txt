@@ -195,3 +195,76 @@ d
 	5:peers
 		48:$EÒácGÜ’ÈÕ±P’ÔÈÕ1“‰õ,è|ïÀùúP‚ :ZB-/ã=»¹Ù÷FcÈÕ
 e
+
+################IPv6 responses################
+
+d
+    8:complete
+        i0e
+    10:incomplete
+        i2e
+    8:interval
+        i60e
+    12:min interval
+        i15e5:peers
+    l
+        d
+            7:peer id
+                20:-UT2210-¹b5R6BHğÆ
+            2:ip
+                39:fe80:0000:0000:0000:ad5c:d753:1413:0798
+            4:port
+                i35104e
+        e
+        d
+            7:peer id
+                20:-UT2210-bÏhì:¹¾C„
+            2:ip
+                39:fe80:0000:0000:0000:9805:fd03:fe87:a133
+            4:port
+                i13297e
+        e
+    e
+e
+
+:doesn't work:
+d
+    8:complete
+        i0e
+    10:incomplete
+        i1e
+    8:interval
+        i60e
+    12:min interval
+        i15e
+    5:peers
+    6:peers6
+        18:ş€      ­\×S˜‰ 
+e
+
+:spec:
+d
+    8:interval
+        i1800e
+    5:peers
+        6:iiiipp
+    6:peers6
+        18:iiiiiiiiiiiiiiiipp
+e
+
+:works:
+d
+    8:complete
+        i0e
+    10:incomplete
+        i2e
+    8:interval
+        i60e
+    12:min interval
+        i15e
+    6:peers6
+        36:ş€      ­\×S˜‰ ş€      ˜ış‡¡33ñ
+e
+
+
+

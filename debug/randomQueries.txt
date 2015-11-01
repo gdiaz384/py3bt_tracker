@@ -1,4 +1,23 @@
-﻿/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96&port=18584&uploaded=0&downloaded=0&left=109603551&corrupt=0&key=0E09C995&event=started&numwant=200&compact=1&no_peer_id=1
+﻿use square brackets [ ] in browsers when accessing ipv6 hosts around the ip address
+http://[fe80:0000:0000:0000:ad5c:d753:1413:798]:9000/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b5R6BH%04%0e%11%f0%c6&port=35104&uploaded=0&downloaded=0&left=0&corrupt=0&key=607292D8&event=started&numwant=200&compact=0&no_peer_id=0
+
+/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b5R6BH%04%0e%11%f0%c6&port=35104&uploaded=0&downloaded=0&left=0&corrupt=0&key=607292D8&event=started&numwant=200&compact=1&no_peer_id=1
+
+/announce?peer_id=aaaaaaaaaaaaaaaaaaaa&info_hash=aaaaaaaaaaaaaaaaaaaa
+&port=6881&left=0&downloaded=100&uploaded=0&compact=1
+&ipv6=2001%3A%3A53Aa%3A64c%3A0%3A7f83%3Abc43%3Adec9
+
+/announce?peer_id=aaaaaaaaaaaaaaaaaaaa&info_hash=aaaaaaaaaaaaaaaaaaaa
+&port=6881&left=0&downloaded=100&uploaded=0&compact=1
+&ipv6=%5B2001%3A%3A53Aa%3A64c%3A0%3A7f83%3Abc43%3Adec9%5D%3A6882
+
+/announce?peer_id=aaaaaaaaaaaaaaaaaaaa&info_hash=aaaaaaaaaaaaaaaaaaaa
+&port=6881&left=0&downloaded=100&uploaded=0&compact=1
+&ipv6=2001%3A%3A53Aa%3A64c%3A0%3A7f83%3Abc43%3Adec9&ipv4=261.52.89.12
+
+/announce?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%16b%cfh%ec%08%3a%b9%beC%11%84&port=13297&uploaded=0&downloaded=0&left=0&corrupt=0&key=6AA27E14&event=started&numwant=200&compact=1&no_peer_id=1&ipv6=2001%3a0%3a9d38%3a90d7%3a34e6%3a1e02%3ab59b%3a5c16 (fe80::9805:fd03:fe87:a133%14)
+
+/announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96&port=18584&uploaded=0&downloaded=0&left=109603551&corrupt=0&key=0E09C995&event=started&numwant=200&compact=1&no_peer_id=1
 
 /announce.php?info_hash=%03e%d1%dfG%a2I%e3%81%db%82%a5%9e%b9%28%3f%f6%25R%a0&peer_id=-UT2210-%b9b%2cs%c3%15%c6Q%3cu%95%96&port=18584&uploaded=0&downloaded=0&left=109603551&corrupt=0&key=0E09C995&event=started&numwant=200&compact=1&no_peer_id=1
 

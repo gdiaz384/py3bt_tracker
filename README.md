@@ -4,57 +4,57 @@ py3bt_tracker is a cross-platform standalone ephemeral tracker for torrents writ
 
 The development emphasis is on zero-configuration "just works" software.
 
-Currently implemented using a multidimentional array in memory and the Tornado Web Server.
+Currently implemented using a multidimentional array in memory and the Tornado Web Server (http).
 
 google_define('ephemeral') #returns: adjective - lasting for a very short time -synonyms: transient, short-lived, brief
 
 ## Key Features:
 
-1. Works
-2. Prebuilt binaries
-3. No external dependencies or configuration required
-4. Permissive license
-5. Standards Compliant
-6. Easy to rebuild from source if so inclined (detailed instructions provided in dont_readme.txt)
+- Works
+- Prebuilt binaries
+- No external dependencies or configuration required
+- Permissive license
+- Standards compliant (including IPv6 support)
+- Easy to rebuild from source if so inclined (check release_notes.txt for detailed instructions)
 
 ## Download:
 
 ```
-Latest Release: v1.0.0-rc.1
-In Development: v1.0.0
+Latest Release: 1.0.0-rc.1
+In Development: 1.0.0-rc.2
 ```
 Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
 
-## Usage guide:
+## Typical Usage Guide:
 
 1. double click on the .exe for your os
-2. point your torrents to http://127.0.0.1:9000/announce where 127.0.0.1 is substituted for your IP obtained from ipconfig (for lans)
+2. point your torrents to http://192.168.1.50:6969/announce where 192.168.1.50 gets substituted for your IP obtained from ipconfig (for lans)
 3. Note: If the firewall annoyance pops up, add as an exception.
 
-## Important Release Notes:
+## Release Notes Summary:
 
-1. Runs on port 9000, with a requested check-in interval of 4 minutes by default (change via command line)
-2. Intended use case is in a LAN enviornment, will also work on the internet, but not currently optimized for it.
-3. Currently no scrape/statistics/ipv6/private/logging features
-4. IPv6, UDP support and obfuscation features might be added at some point
+- By default, runs on port 6969, with a check-in interval of 4 minutes
+- Currently no scrape/statistics/private/logging/obfuscation features
+- Intended use case is for LANs. Will also work on the internet, but not currently optimized for it.
+- If there's any interest in doing so, I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP/obfuscation support, since that's the natural extension to this project. Just message me over git.
 
-
-## Example usage:
+## Advanced Usage Guide:
 ```
-Syntax: py3bt_tracker {port='9000'} {interval='4'} {obfuscation='off'}
-py3bt_tracker --help
-py3bt_tracker
-py3bt_tracker 6969
-py3bt_tracker 9000 4
-py3bt_tracker 6969 16 off
-py3bt_tracker 8080 30 on
-Windows (binary):  start "" C:\Users\User\Downloads\py3bt_tracker.exe 9000 10
-Windows (pyscript): start "" python C:\Users\User\Downloads\py3bt_tracker.py 6969
+Syntax: py3bt_tracker {--port=6969} {--client_request_interval=4} {--enable_obfuscation}
+Syntax: py3bt_tracker {-p=9000} {-i=30} {-o}
+>py3bt_tracker --help
+>py3bt_tracker
+>py3bt_tracker --port=6969
+>py3bt_tracker -p=6969
+>py3bt_tracker -p=6969 -i=4
+>py3bt_tracker -p=80 --client_request_interval=15
+Windows (binary): >start "" C:\Users\User\Downloads\py3bt_tracker.exe --port=9000
+Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py -i=30
 ```
 
-Notes: obfuscation not currently implemented, planned for v2.0 (maybe)
+Notes: obfuscation not currently implemented, planned for v2.0.0 if there's enough interest
 
 ## License:
 Pick your License: GPL (any) or BSD (any) or MIT/Apache
 
-If I get any questions, I'm changing this to "beerware" and will refuse to elaborate further. You've been warned.
+If I get any questions, I'm changing this to "beerware" and will refuse to elaborate further. You have been warned.

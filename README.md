@@ -36,7 +36,7 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 - By default, runs on port 6969, with a check-in interval of 4 minutes
 - Currently no scrape/statistics/private/logging/obfuscation features
 - Intended use case is for LANs. Will also work on the internet, but not currently optimized for it.
-- If there's any interest in doing so, I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP/obfuscation support, since that's the natural extension to this project. Just message me over git.
+- If there's any interest in doing so, I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP/obfuscation support, since that's the natural extension to this project. Message me over git.
 
 ## Advanced Usage Guide:
 ```

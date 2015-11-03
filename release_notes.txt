@@ -9,68 +9,17 @@ Notice: Although it should work, py3bt_tracker is not currently optimized for pe
 
 Read the "Stuff Not To Spec" section and "Todo List" to determine if this is suitable for your enviornment.
 
-How To Build 
--For Windows: Stop reading this and go get binaries available under "releases"
--Windows build enviornment provided as an example 
--Use this example to understand the process when building under a gnu linux/bsd distro
-
-1) install python
-https://www.python.org/downloads/windows/  and 
-For 64-bit systems "Download Windows x86-64 MSI installer"  -> from python-3.4.3.amd64.msi 
-For 32-bit systems "Download Windows x86 MSI installer" ->Download python-3.4.3.msi
-Required: add to path
-Recommended: select "Advanced"->compile .py into binary files
-Required: Relog <-important
-2) open an administrative command prompt
-cmd
-3) install tornado web server
->pip install tornado
-or  
-C:\Users\User>pip install tornado
-3) copy py3bt_tracker.py to c:\python34\scripts\py3bt_tracker.py
-5) >cd c:\python34\scripts
-6) can run using python direclty now 
-c:\python34\scripts>python py3bt_tracker.py
-or
->start "" python py3bt_tracker.py
-or
->RunHiddenConsole.exe python py3bt_tracker.py
-(available from the internets)
-or
-7) to compile into a .exe -Install the GCC compiler via tdm64-gcc-5.1.0-2.exe, or some other one
-http://tdm-gcc.tdragon.net/download
-8) >pip install pyinstaller
-9) >pyinstaller --onefile py3bt_tracker.py
-10) look for the output under c:\python34\scripts\dist\
-
-Ubuntu:
-apt-get install python3-pip python-dev build-essential 
-pip3 install tornado
-pip3 install pyinstaller
-pyinstaller --version
-the pyinstaller devs are asses so make sure to sudo as a regular user or relog out of the root user to compile
-pyinstaller --onefile py3bt_tracker.py
-output is under /dist
-
-Post Compilation Usage:
-To run: double click on it
+Usage:
+double click on it
 Detailed Usage: see advanced usage in the readme.md or run py3bt_tracker.exe --help
 To close/stop it: ctrl+c or click on the little x at the top right of the command prompt window
-To log output: py3bt_tracker.exe > %userprofile%\desktop\py3bt_tracker.log.txt
+To log output: py3bt_tracker.exe > %userprofile%\desktop\py3bt_tracker.log.txt (very bare atm)
 
 Motivation/goal:
 -opentracker is posix only due to fat library dependency :'(  
 -same with and all other trackers I've found, either non-functional or dependencies everywhere or both why x.x
 -This one is a cross platform non-equivalent with an emphasis on reduced performance and fewer (end-user) dependencies, 
 as in: compiled already that doesn't need linux/webserver/php/sql/vsredists/boost/ides/vstudio/knowinghowtocompilesoftware/webengine etc
-
-Questions about why this is so poorly written:
--my first python program
--my first useful program, as in program that was actually useful at solving a novel problem not solved before (standalone tracker for windows)
--emphasis is on working/legibility, not running super fast (not optimized for use on internetz)
--not sure exactly how to reference python class variables
--not sure how to create dynamic variables in py3, and py2 method using exec() was a hack
--and not sure how to print/message_pass/append binary, as in native binary, cmd doesn't seem to like it so can't rencode back to valid data after using str(binary_data)
 
 Spec available at:
 https://wiki.theory.org/BitTorrentSpecification 
@@ -85,21 +34,375 @@ Stuff Not To Spec:
 -option to only return peer list to 'registered' peers. Why not? cuz idea is stupid and also very complicated to implement
 -beep31 why not? that's more for web servers in general to respond to clients, non really for actual trackers
 -trackerID. Why not? i'm assuming this is like an xsrf token to identify the peer. very limited use cases and coding depends strongly on how the tracker is intended to be used
--beep6 why not? not sure if it's widely supported enough to bother implementing, and also looks complicated, and not sure it even makes sense since anyone sniffing the line could always just do a replay attack and receive the peer list right? And anyway, TLS is a better solution to passive sniffing. Mere obfuscation would help only if data is stored in a db for anaysis later, but still any 'decrypted' obfuscation would be very damning evidence so... If this is important, then it makes more sense to seed the db with fake peers to contaminate the evidence preemtively. I could totally code this in maybe somehow if bored enough one day.
+-beep6 why not? not sure if it's widely supported enough to bother implementing, and also looks complicated, and not sure it even makes sense since anyone sniffing the line could always just do a replay attack and receive the peer list right? And anyway, TLS is a better solution to passive sniffing. Mere obfuscation would help only if data is stored in a db for anaysis later, but still any 'decrypted' obfuscation would be very damning evidence so... If this is important, then it makes more sense to seed the db with fake peers to contaminate the evidence preemtively. I could totally code this if bored enough one day.
+
+Questions about why this is so poorly written:
+-my first python program
+-my first useful program, as in program that was actually useful at solving a novel problem not solved before (standalone tracker for windows)
+-emphasis is on working/legibility, not running super fast (not optimized for use on internetz)
+-not sure exactly how to reference python class variables
+-not sure how to create dynamic variables in py3, and py2 method using exec() was a hack
+-and not sure how to print/message_pass/append binary, as in native binary, cmd doesn't seem to like it so can't rencode back to valid data after using str(binary_data)
 
 Version 1 Todo list:
--incomplete and complete should increment/decrement -partially done, need to improve "update" code still  -in progress
--add ipv6 support at some point -will get around to it eventually... -in progress
--Should return a response of peers picked randomly from peer pool for a torrent, will get around to it eventually... -in progress
--figure out how to read, store and respond with dns names...somehow. -No idea how to implement that, maybe just resolve first and store ip's? or does spec require sending back dns names...x.x -in progress
+-incomplete and complete should increment/decrement -currently buggy (cosmetic tho)
+-(bug) ipv6 integer ports are messed up ii35104ee
 -maybe implement logging, maybe 
+
 -Version 2 Todo list:
 -add required response delay before giving out peers or adding to main peer db to raise the bar on potential for abuse in untrustworthy enviornments
 -improve performance for use in WANs (production quality code optimizations + fully async web server)
 -also add obfuscation feature (using the ipaddress library), and make wipe old peers/db optional (essentially have a reliably mode and a screwy mode filled with wrong info)
+-maybe v2 should have a "high integrity mode" and a deliberate "low integrity mode"
 -add udp tracker support (beep 15) -Does Tornado even know what UDP is? maybeh, or just import udp support from another project
 
 NOT on todo list:
 scrape functionality -cuz ephemeral
 private tracker feature - registered infohashes -cuz ephemeral
 private tracker feature - registered peers -cuz stupid
+
+
+How To Build:
+
+Stop reading this and go get binaries available under "releases".
+
+https://github.com/gdiaz384/py3bt_tracker/releases
+
+Seriously.
+
+
+##don't read past this line##
+
+
+If you're still reading...let's get started.
+
+Windows Vista,7,8,81,10 64-bit (x64)
+
+google -> python -> download -> different OS -> Windows -> Python 3.4.3 - 2015-02-25 -> Windows x86-64 MSI installer
+https://www.python.org/ftp/python/3.4.3/python-3.4.3.amd64.msi
+(required) add to path 
+(optional) compile py to binary files 
+http://tdm-gcc.tdragon.net/
+http://sourceforge.net/projects/tdm-gcc/files/TDM-GCC%20Installer/tdm64-gcc-5.1.0-2.exe/download
+log out and log back in or reboot computer
+run->cmd
+>pip install tornado
+>pip install pyinstaller
+google -> py3bt_tracker -> github -> click on py3bt_tracker.py -> raw -> ctrl+S
+or
+https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py 
+pyinstaller --version
+pyinstaller --onefile py3bt_tracker.py
+look for the output under dist\
+double click on it and tell firewall annoyance to add as an exception
+
+
+Windows XP,Vista,7,8,81,10 32-bit (x86)
+
+google -> python -> download -> different OS -> Windows -> Python 3.4.3 - 2015-02-25 ->  Windows x86 MSI installer
+https://www.python.org/ftp/python/3.4.3/python-3.4.3.msi 
+(required) add to path 
+(optional) compile py to binary files 
+http://tdm-gcc.tdragon.net/
+http://sourceforge.net/projects/tdm-gcc/files/TDM-GCC%20Installer/tdm-gcc-5.1.0-3.exe/download 
+log out and log back in or reboot computer
+run->cmd
+>pip install tornado
+>pip install pyinstaller
+google -> py3bt_tracker -> github -> click on py3bt_tracker.py -> raw -> ctrl+S
+or
+https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py 
+pyinstaller --version
+pyinstaller --onefile py3bt_tracker.py
+look for the output under dist\
+double click on it and tell firewall annoyance to add as an exception
+
+
+Ubuntu 14.04
+
+python --version
+which python
+sudo rm /usr/bin/python
+ls /usr/bin/py*
+sudo link /usr/bin/python3 /usr/bin/python
+python --version
+
+sudo apt-get install python3-pip python-dev build-essential
+sudo pip3 install tornado
+sudo pip3 install pyinstaller
+pyinstaller --version
+wget https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py 
+pyinstaller --onefile py3bt_tracker.py
+cd dist
+mv py3bt_tracker py3bt_tracker.exe
+look for the output non-exe under /dist
+
+(Note: Linux Mint has issues but is binary compatible with Ubuntu builds)
+
+
+Fedora22
+
+>python --version
+>rm /bin/python
+>y
+>link /bin/python3 /bin/python
+>python --version
+>pip install tornado
+>pip install pyinstaller
+>pyinstaller --version
+the pyinstaller devs being asses
+>useradd temp
+>passwd temp
+sudo -u temp pyinstaller --version
+firefox or use wget: 
+https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py 
+copy py3bt_tracker.py  to /usr/local
+>cp /root/Desktop/py3bt_tracker.py /usr/local
+>chmod -R a+rwx /usr/local
+>cd /usr/local
+>sudo -u temp pyinstaller --onefile py3bt_tracker.py
+output is under /dist
+mv py3bt_tracker py3bt_tracker.bin
+system -> administration -> firewall -> switch config to perm -> ports
+"Add" -> 6969 -> OK -> Options -> Reload firewall
+Despite the efforts of the fedora and pyinstaller communities, the program now works.
+
+The change earlier to python actually breaks yum and some other apps (yum is py2 only
+and now python points to py3), so need to change the system default back to py2
+python -V
+rm /bin/python
+link /bin/python2.7 /bin/python
+python -V
+yum install ftp
+
+
+CentOS 5-6  
+
+-this is very "involved", Prepare yourself!
+
+https://www.digitalocean.com/community/tutorials/how-to-set-up-python-2-7-6-and-3-3-3-on-centos-6-4
+"--no-check-certificate" is usually needed for centOS 5's wget, but not for 6
+
+yum groupinstall -y 'development tools'
+yum install -y zlib-dev openssl-devel sqlite-devel bzip2-devel
+yum install wget xz-libs
+wget https://www.python.org/ftp/python/3.4.3/Python-3.4.3.tar.xz
+mkdir /usr/python
+mv Python-3.4.3.tar.xz /usr/python
+cd /usr/python
+xz -d Python-3.4.3.tar.xz
+tar -xvf Python-3.4.3.tar
+cd Python-3.4.3  
+./configure
+make && make altinstall
+python -V
+
+~export the path wherever you installed it~
+export PATH="/usr/local/bin:$PATH"
+export PATH="/root/Python-3.4.3:$PATH"
+export PATH="/usr/local/Python-3.4.3:$PATH"
+export PATH="/usr/python/Python-3.4.3:$PATH"
+
+and now to build it (again!)
+./configure --enable-shared
+make && make altinstall
+python -V
+
+vi /etc/ld.so.conf
+add a new line that says 
+/usr/python/Python-3.4.3
+or wherever you installed to
+ldconfig
+python -V
+
+yum install curl
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+python get-pip.py
+pip install tornado
+pip install pyinstaller
+pyinstaller --version
+wget --no-check-certificate https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py
+pyinstaller --onefile py3bt_tracker.py  <--doesn't work b/c pyinstaller people are asses
+the pyinstaller devs are asses so: 
+useradd temp
+passwd temp
+sudo -u temp pyinstaller --version
+cp py3bt_tracker.py /usr/local
+chmod -R a+rwx /usr/local
+logout
+temp
+password
+python -V  <-grrrrr
+export PATH="/usr/python/Python-3.4.3:$PATH"
+python -V
+cd /usr/local
+pyinstaller --version
+pyinstaller --onefile py3bt_tracker.py
+cd dist
+mv py3bt_tracker py3bt_tracker.exe
+logout
+root
+password
+service iptables stop
+chkconfig iptables off
+ifconfig
+cd /usr/local/dist
+./py3bt_tracker.exe
+ctrl+c to stop
+might want to be more granular about the firewall or w/e
+Despite the efforts of the pyinstaller community, the program now works.
+
+
+CentOS 7 (x64 only)
+
+yum install epel-release
+yum install wget curl
+yum install python34-devel
+python -V
+rm /bin/python
+link /bin/python3.4 /bin/python
+python -V
+i  (insert mode)
+alt+q  (command mode)
+::wq    (save and quit)
+curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py"
+python get-pip.py
+pip install tornado
+pip install pyinstaller
+pyinstaller --version
+the pyinstaller devs are asses 
+curl https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py -o "py3bt_tracker.py"
+cp py3bt_tracker.py /usr/local
+chmod -R a+rwx /usr/local
+useradd temp
+passwd temp
+sudo -u temp pyinstaller --version
+logout
+python -V  <-if that doesn't show 3.4.3, update path, else skip updating path
+export PATH="/usr/python/Python-3.4.3:$PATH"
+python -V  <-make sure that shows 3.4.3 now
+cd /usr/local
+pyinstaller --version
+pyinstaller --onefile py3bt_tracker.py
+cd dist
+mv py3bt_tracker py3bt_tracker.exe
+ip addr
+logout
+root
+password
+service firewalld stop
+chkconfig firewalld off
+might want to be more granular about the firewall at some point
+/usr/local/dist/py3bt_tracker.exe
+ctrl+c to stop
+
+The change earlier to python actually breaks yum and some other apps (yum is py2 only
+and now python points to py3), so need to change the system default back to py2
+python -V
+rm /bin/python
+link /bin/python2.7 /bin/python
+python -V
+yum install ftp
+
+
+VMware Tools installation on CentOS (for NIC driver)
+
+Note: requires perl, so if you installed CentOS minimal -> reinstall the OS from non-minimal source
+mkdir /mnt/cdrom
+mount /dev/cdrom /mnt/cdrom
+cp /mnt/cdrom/VMwareTools-*.tar.gz /tmp
+umount /mnt/cdrom
+cd /tmp
+tar -zxf /tmp/VMwareTools-*.tar.gz
+cd vmware-tools-distrib
+./vmware-install.pl --default
+
+
+PC-BSD (64-bit only)
+(building was unsuccessful)
+
+Note: This assumes a user account by the name of "user"
+https://pythonhosted.org/PyInstaller/#building-for-linux
+
+CTRL+ALT+F1
+root
+password
+python -V
+pkg install python3
+python -V
+which python
+rm /usr/local/bin/python
+link /usr/local/bin/python3 /usr/local/bin/python
+python -V
+wget "https://bootstrap.pypa.io/get-pip.py"
+python get-pip.py
+pip install tornado
+##pip install pyinstaller
+pyinstaller --version
+wget https://raw.githubusercontent.com/gdiaz384/py3bt_tracker/master/py3bt_tracker.py
+mkdir /usr/home/user/temp
+cp py3bt_tracker.py /usr/home/user/temp
+chmod -R a+rwx /usr/home/user/temp
+cd /usr/home/user/temp
+sudo -u user python --version
+##sudo -u user pyinstaller --version
+
+no pyinstaller bootloaders for bsd, so need to compile the bootloader
+https://pythonhosted.org/PyInstaller/#building-for-linux
+git clone https://github.com/pyinstaller/pyinstaller
+cd pyinstaller/bootloader
+python ./waf configure build install
+python ./waf distclean all
+python ./waf all
+cd ..
+python setup.py install
+pyinstaller --version
+so the developers don't neuter their own version, just the ones they give to users, interesting.
+pyinstaller --onefile py3bt_tracker.py
+cd dist
+mv py3bt_tracker py3bt_tracker.exe
+"cannot execute from /tmp"
+
+
+Some extra commands in case you want to play:
+
+for nano ctrl+o and then Enter to "save"
+ctrl + X to exit
+
+wget --no-check-certificate https://bootstrap.pypa.io/ez_setup.py -O - | python <-doesn't work
+wget --no-check-certificate https://bootstrap.pypa.io/ez_setup.py
+vi ez_setup.py
+to enter insert mode:
+i
+go down where it says: def download_file_wget(url, target):
+edit the following line from:
+cmd = ['wget', url, '--quiet', '--output-document', target]
+to:
+cmd = ['wget', url, '--no-check-certificate', '--output-document', target]
+to enter command mode:
+alt+q
+:
+:wq
+python ez_setup.py
+
+cp -avr ~/Python-3.4.3 /usr/local/
+cp py3bt_tracker.py /usr/local/
+export PATH="/usr/python/Python-3.4.3:$PATH"
+logout
+temp
+password
+visudo /etc/sudoers
+to enter insert mode:
+i
+create a new line under root (most of the way down) so things look like this:
+root    ALL=(ALL:ALL) ALL 
+temp    ALL=(ALL:ALL) ALL 
+to enter command mode:
+alt+q
+:
+:wq
+exit and save (::wq)
+sudo -u temp pyinstaller --version
+sudo -u temp pyinstaller --onefile /usr/local/Python-3.4.3/py3bt_tracker.py
+vim $(which yum)
+

@@ -1,2 +1,0 @@
-The binaries have additional licenses that apply (which are available under py3bt_tracker\bin\licenses)
-due to some crazy dependency chain (eww) so might want to compile from source if that's an issue.

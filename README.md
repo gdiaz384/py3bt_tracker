@@ -15,13 +15,13 @@ google_define('ephemeral') #returns: adjective - lasting for a very short time, 
 - No external dependencies or configuration required
 - Permissive license
 - Standards compliant (including IPv6 support)
-- Easy to rebuild from source if so inclined (check release_notes.txt for detailed instructions)
+- Easy to rebuild from source if so inclined (see release_notes.txt)
 
 ## Download:
 
 ```
 Latest Release: 1.0.0
-Development: stopped, pm me with a use case/feature to add
+Development: stopped. Open an "issue" or pm me for a requested use case/feature or bug
 ```
 Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases" at the top to download the latest version.
 
@@ -33,7 +33,7 @@ Click [here](https://github.com/gdiaz384/py3bt_tracker/releases) or on "releases
 
 ## Release Notes Summary:
 
-- By default, runs on port 6969, with a check-in interval of 4 minutes
+- By default, runs on port 6969 with a check-in interval of 4 minutes and database lifespan of 1 hour.
 - Currently no scrape/statistics/private/logging/obfuscation features
 - Intended use case is for LANs. Will also work on the internet, but not currently optimized for it.
 - If there's any interest in doing so, I'll do a version 2.0.0 for optimized use on the internetwork system, with UDP/obfuscation support, since that's the natural extension to this project. Message me over git.
@@ -55,6 +55,6 @@ Windows (pyscript): >start "" python C:\Users\User\Downloads\py3bt_tracker.py -i
 Notes: obfuscation not currently implemented, planned for 2.0.0 if there's enough interest
 
 ## License:
-Pick your License: GPL (any) or BSD (any) or MIT/Apache
+Pick your License: any version of GPL/BSD/MIT or Apache
 
-If I get any questions, I'm changing this to "beerware" and will refuse to elaborate further. You have been warned.
+If I get any questions on licensing, I'm changing this to "beerware" and will refuse to elaborate further.
